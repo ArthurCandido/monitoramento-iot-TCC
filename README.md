@@ -1,6 +1,6 @@
 # 🏠 Monitoramento IoT - TCC
 
-Sistema completo de monitoramento ambiental em tempo real utilizando ESP32 e sensores IoT. 
+Sistema completo de monitoramento em tempo real utilizando ESP32 e sensores IoT. 
 Apresenta dashboard web responsivo com visualizações ao vivo, análise histórica e alertas 
 automáticos para temperatura, umidade, luminosidade e movimento.
 
@@ -110,31 +110,13 @@ String serverName = "http://SEU_IP:3000/api/gravar";
 
 ## 🎓 Projeto TCC
 
-Este projeto foi desenvolvido como Trabalho de Conclusão de Curso (TCC) em Engenharia/Tecnologia, demonstrando a aplicação prática de:
+Este projeto foi desenvolvido como Trabalho de Conclusão de Curso (TCC) em Bacharelado em Ciência da Computação (UTFPR-CM), demonstrando a aplicação prática de:
 
 - Internet das Coisas (IoT)
 - Sistemas embarcados
 - Desenvolvimento web moderno
 - Análise de dados em tempo real
 - Interface homem-máquina
-
-## 📸 Screenshots
-
-![Dashboard](docs/dashboard.png)
-*Dashboard principal com dados em tempo real*
-
-![Sensores](docs/sensores.png)
-*Visualização detalhada dos sensores*
-
-## 🤝 Contribuição
-
-Sugestões e melhorias são bem-vindas! Sinta-se à vontade para:
-
-1. Fazer fork do projeto
-2. Criar uma branch para sua feature
-3. Commit suas mudanças
-4. Fazer push para a branch
-5. Abrir um Pull Request
 
 ## 📄 Licença
 
@@ -144,8 +126,4 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 **Arthur Candido**
 - GitHub: [@ArthurCandido](https://github.com/ArthurCandido)
-- Email: [seu-email@exemplo.com]
-
----
-
-⭐ Se este projeto te ajudou, considere dar uma estrela no repositório!
+- Email: [arthurarcelo24@gmail.com]
