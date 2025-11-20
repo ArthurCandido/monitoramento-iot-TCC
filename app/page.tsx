@@ -1,0 +1,110 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Sidebar from '@/components/sidebar'
+import DashboardView from '@/components/dashboard-view'
+import SensorsView from '@/components/sensors-view'
+import HistoryView from '@/components/history-view'
+import AlertsView from '@/components/alerts-view'
+import StatusView from '@/components/status-view'
+
+interface SensorData {
+  temperatura: number
+  umidade: number
+  luminosidade: number
+  movimento: string
+  alerta_ar: string
+  alerta_luz: string
+  data_hora: string
+  id: number
+}
+
+interface HistoryData {
+  temperatura: number
+  luminosidade: number
+  data_hora: string
+}
+
+export default function Dashboard() {
+  const [activeSection, setActiveSection] = useState('dashboard')
+  const [currentData, setCurrentData] = useState<SensorData | null>(null)
+  const [historyData, setHistoryData] = useState<HistoryData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [connectionStatus, setConnectionStatus] = useState('connecting')
+  const [events, setEvents] = useState<Array<{ id: number; type: string; message: string; timestamp: string }>>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resAtual, resHist] = await Promise.all([
+          fetch('/api/atual'),
+          fetch('/api/historico'),
+        ])
+
+        if (resAtual.ok && resHist.ok) {
+          const dataAtual = await resAtual.json()
+          const dataHist = await resHist.json()
+
+          setCurrentData(dataAtual)
+          setHistoryData(dataHist)
+          setConnectionStatus('connected')
+          setIsLoading(false)
+
+          if (dataAtual.alerta_ar !== 'OK' || dataAtual.alerta_luz !== 'OK') {
+            const newEvent = {
+              id: Date.now(),
+              type: dataAtual.alerta_ar !== 'OK' ? 'warning' : 'warning',
+              message: dataAtual.alerta_ar !== 'OK' ? dataAtual.alerta_ar : dataAtual.alerta_luz,
+              timestamp: new Date().toLocaleTimeString('pt-BR'),
+            }
+            setEvents((prev) => [newEvent, ...prev.slice(0, 9)])
+          }
+        } else {
+          setConnectionStatus('error')
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error)
+        setConnectionStatus('error')
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'sensors':
+        return <SensorsView currentData={currentData} isLoading={isLoading} />
+      case 'history':
+        return <HistoryView historyData={historyData} />
+      case 'alerts':
+        return <AlertsView currentData={currentData} />
+      case 'status':
+        return <StatusView connectionStatus={connectionStatus} />
+      default:
+        return (
+          <DashboardView
+            currentData={currentData}
+            historyData={historyData}
+            isLoading={isLoading}
+            connectionStatus={connectionStatus}
+            events={events}
+          />
+        )
+    }
+  }
+
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {renderContent()}
+      </div>
+    </div>
+  )
+}
