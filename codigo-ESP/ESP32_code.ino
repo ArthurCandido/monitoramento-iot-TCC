@@ -11,8 +11,8 @@
 const char* ssid = "";
 const char* password = "";
 
-// URL do servidor backend (ajuste conforme seu IP)
-String serverName = "/api/gravar";
+// URL do servidor backend - URL da Vercel
+String serverName = "https://monitoramento-iot-tcc.vercel.app/api/gravar";
 
 // ============================================================
 // CONFIGURAÇÕES DE PINOS

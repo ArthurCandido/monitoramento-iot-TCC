@@ -7,6 +7,7 @@ import SensorsView from '@/components/sensors-view'
 import HistoryView from '@/components/history-view'
 import AlertsView from '@/components/alerts-view'
 import StatusView from '@/components/status-view'
+import { ConfigView } from '@/components/config-view'
 
 interface SensorData {
   temperatura: number
@@ -83,6 +84,8 @@ export default function Dashboard() {
         return <AlertsView currentData={currentData} />
       case 'status':
         return <StatusView connectionStatus={connectionStatus} />
+      case 'config':
+        return <ConfigView />
       default:
         return (
           <DashboardView

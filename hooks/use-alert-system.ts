@@ -1,0 +1,184 @@
+"use client"
+
+import { useState, useEffect, useCallback } from 'react'
+import { useToast } from './use-toast'
+
+interface SensorData {
+  temperatura: number
+  umidade: number
+  luminosidade: number
+  movimento: string
+  timestamp: number
+}
+
+interface AlertConfig {
+  temperaturaLimite: number
+  luminosidadeLimite: number
+  tempoSemMovimento: number
+}
+
+interface Alert {
+  id: string
+  tipo: 'ar-condicionado' | 'luzes'
+  mensagem: string
+  nivel: 'warning' | 'error'
+  timestamp: number
+}
+
+const defaultConfig: AlertConfig = {
+  temperaturaLimite: 23,
+  luminosidadeLimite: 2500,
+  tempoSemMovimento: 300, // segundos (5 minutos)
+}
+
+export function useAlertSystem() {
+  const [config, setConfig] = useState<AlertConfig>(defaultConfig)
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now())
+  const { toast } = useToast()
+
+  // Carregar configurações do localStorage
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('iot-alert-config')
+    if (savedConfig) {
+      try {
+        setConfig(JSON.parse(savedConfig))
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error)
+      }
+    }
+  }, [])
+
+  // Adicionar novo alerta
+  const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp'>) => {
+    const newAlert: Alert = {
+      ...alert,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+    }
+    
+    setAlerts(prev => {
+      // Evitar alertas duplicados nos últimos 5 minutos
+      const isDuplicate = prev.some(existingAlert => 
+        existingAlert.tipo === newAlert.tipo &&
+        Date.now() - existingAlert.timestamp < 5 * 60 * 1000
+      )
+      
+      if (!isDuplicate) {
+        // Manter apenas os últimos 20 alertas
+        const updatedAlerts = [newAlert, ...prev].slice(0, 20)
+        
+        // Mostrar toast simples
+        toast({
+          title: getAlertTitle(newAlert.tipo, newAlert.nivel),
+          description: newAlert.mensagem,
+          variant: newAlert.nivel === 'error' ? 'destructive' : 'default'
+        })
+        
+        return updatedAlerts
+      }
+      
+      return prev
+    })
+  }, [toast])
+
+  // Gerar título do alerta
+  const getAlertTitle = (tipo: Alert['tipo'], nivel: Alert['nivel']): string => {
+    const prefixes = {
+      warning: '🟡 Aviso',
+      error: '🔴 Alerta'
+    }
+    
+    const tipos = {
+      'ar-condicionado': 'Ar Condicionado',
+      'luzes': 'Luzes'
+    }
+    
+    return `${prefixes[nivel]} - ${tipos[tipo]}`
+  }
+
+  // Analisar dados dos sensores e gerar alertas
+  const analyzeData = useCallback((data: SensorData) => {
+    const now = Date.now()
+    
+    // Atualizar último movimento detectado
+    if (data.movimento === 'Detectado') {
+      setLastMovementTime(now)
+      return // Se há movimento, não gerar alertas de economia
+    }
+    
+    // Calcular tempo sem movimento em segundos
+    const tempoSemMovimentoSegundos = (now - lastMovementTime) / 1000
+    
+    // Só gerar alertas se passou o tempo configurado sem movimento
+    if (tempoSemMovimentoSegundos >= config.tempoSemMovimento) {
+      
+      // Alerta de ar condicionado (temperatura baixa indica ar ligado)
+      if (data.temperatura < config.temperaturaLimite) {
+        addAlert({
+          tipo: 'ar-condicionado',
+          nivel: 'error',
+          mensagem: `❄️ Ar condicionado ligado há ${Math.round(tempoSemMovimentoSegundos)}s sem ninguém! Temp: ${data.temperatura.toFixed(1)}°C`
+        })
+      }
+      
+      // Alerta de luzes acesas
+      if (data.luminosidade > config.luminosidadeLimite) {
+        addAlert({
+          tipo: 'luzes',
+          nivel: 'warning',
+          mensagem: `💡 Luzes acesas há ${Math.round(tempoSemMovimentoSegundos)}s sem ninguém! Luminosidade: ${data.luminosidade} lux`
+        })
+      }
+    }
+    
+  }, [config, lastMovementTime, addAlert])
+
+  // Limpar alertas antigos
+  const clearOldAlerts = useCallback(() => {
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000)
+    setAlerts(prev => prev.filter(alert => alert.timestamp > oneDayAgo))
+  }, [])
+
+  // Remover alerta específico
+  const removeAlert = useCallback((alertId: string) => {
+    setAlerts(prev => prev.filter(alert => alert.id !== alertId))
+  }, [])
+
+  // Limpar todos os alertas
+  const clearAllAlerts = useCallback(() => {
+    setAlerts([])
+  }, [])
+
+  // Salvar configurações
+  const updateConfig = useCallback((newConfig: AlertConfig) => {
+    setConfig(newConfig)
+    localStorage.setItem('iot-alert-config', JSON.stringify(newConfig))
+  }, [])
+
+  // Estatísticas dos alertas
+  const alertStats = {
+    total: alerts.length,
+    errors: alerts.filter(a => a.nivel === 'error').length,
+    warnings: alerts.filter(a => a.nivel === 'warning').length,
+    today: alerts.filter(a => Date.now() - a.timestamp < 24 * 60 * 60 * 1000).length
+  }
+
+  // Limpeza automática a cada hora
+  useEffect(() => {
+    const interval = setInterval(clearOldAlerts, 60 * 60 * 1000) // 1 hora
+    return () => clearInterval(interval)
+  }, [clearOldAlerts])
+
+  return {
+    config,
+    alerts,
+    alertStats,
+    lastMovementTime,
+    analyzeData,
+    updateConfig,
+    removeAlert,
+    clearAllAlerts,
+    addAlert
+  }
+}
