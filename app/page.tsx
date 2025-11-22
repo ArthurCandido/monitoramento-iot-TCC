@@ -65,7 +65,9 @@ export default function Dashboard() {
           console.log('🔄 Frontend: Dados recebidos da API histórico:', dataHist)
 
           setCurrentData(dataAtual)
-          setHistoryData(dataHist)
+          // PostgreSQL API retorna { success: true, data: [...] }
+          const histArray = dataHist.data || dataHist || []
+          setHistoryData(histArray)
           setConnectionStatus('connected')
           setIsLoading(false)
 

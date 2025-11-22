@@ -7,7 +7,8 @@ import { BarChart, Bar } from 'recharts'
 interface HistoryData {
   temperatura: number
   luminosidade: number
-  data_hora: string
+  data_hora?: string  // formato antigo
+  timestamp?: string  // formato PostgreSQL
 }
 
 interface ChartSectionProps {
@@ -15,17 +16,29 @@ interface ChartSectionProps {
 }
 
 export default function ChartSection({ historyData }: ChartSectionProps) {
-  const chartData = historyData.map((d) => ({
-    time: new Date(d.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+  // Validação de segurança - garantir que historyData é um array
+  const safeHistoryData = Array.isArray(historyData) ? historyData : []
+  
+  if (safeHistoryData.length === 0) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-6">
+        <h2 className="text-lg font-semibold mb-4">Histórico de Dados</h2>
+        <p className="text-muted-foreground">Aguardando dados históricos...</p>
+      </div>
+    )
+  }
+  
+  const chartData = safeHistoryData.map((d) => ({
+    time: new Date(d.timestamp || d.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     temperatura: d.temperatura,
     luminosidade: Math.round(d.luminosidade / 100),
   }))
 
   // Calculate statistics
-  const temps = historyData.map((d) => d.temperatura)
-  const avgTemp = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1)
-  const maxTemp = Math.max(...temps).toFixed(1)
-  const minTemp = Math.min(...temps).toFixed(1)
+  const temps = safeHistoryData.map((d) => d.temperatura)
+  const avgTemp = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '0'
+  const maxTemp = temps.length > 0 ? Math.max(...temps).toFixed(1) : '0'
+  const minTemp = temps.length > 0 ? Math.min(...temps).toFixed(1) : '0'
 
   return (
     <div className="space-y-6 mb-8">
