@@ -171,6 +171,12 @@ class DataStore {
     const cachedData = process.env.CACHE_CURRENT_DATA
     const lastUpdate = process.env.CACHE_LAST_UPDATE
     
+    console.log('🔍 Debug cache:', {
+      hasCachedData: !!cachedData,
+      lastUpdate: lastUpdate,
+      cachePreview: cachedData ? cachedData.substring(0, 100) + '...' : 'null'
+    });
+    
     if (cachedData && lastUpdate) {
       try {
         const parsedData = JSON.parse(cachedData)
@@ -186,11 +192,13 @@ class DataStore {
           id: this.storage.nextId++
         }
         
-        console.log('✅ Cache recarregado')
+        console.log('✅ Cache recarregado com sucesso:', this.storage.currentData)
         return true
       } catch (error) {
         console.log('❌ Erro ao recarregar:', error)
       }
+    } else {
+      console.log('❌ Cache não disponível - cachedData:', !!cachedData, 'lastUpdate:', !!lastUpdate)
     }
     
     return false
