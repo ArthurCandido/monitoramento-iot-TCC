@@ -32,12 +32,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Aplicar lógica de alertas baseada nos dados ESP32
+    // Buscar configurações dinâmicas ou usar padrão
     const alertConfig = {
-      temperaturaLimite: 23, // Configurações padrão - podem ser dinâmicas depois
-      luminosidadeLimite: 2500,
-      tempoSemMovimento: 20 // 20 segundos para teste
+      temperaturaLimite: parseInt(process.env.ALERT_TEMP_LIMITE || '23'),
+      luminosidadeLimite: parseInt(process.env.ALERT_LUZ_LIMITE || '2500'),
+      tempoSemMovimento: parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '20')
     }
+    
+    console.log('🔧 Configurações de alerta em uso:', alertConfig)
     
     let alertaAr = "OK"
     let alertaLuz = "OK"

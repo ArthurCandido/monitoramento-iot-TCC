@@ -29,30 +29,64 @@ export function ConfigView() {
 
   // Carregar configurações
   useEffect(() => {
-    const savedConfig = localStorage.getItem('iot-alert-config')
-    if (savedConfig) {
+    const carregarConfiguracoes = async () => {
       try {
-        setConfig(JSON.parse(savedConfig))
+        // Carregar do localStorage primeiro
+        const savedConfig = localStorage.getItem('iot-alert-config')
+        if (savedConfig) {
+          setConfig(JSON.parse(savedConfig))
+        }
+        
+        // Carregar do backend para sincronizar
+        const response = await fetch('/api/config-alertas')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.config) {
+            setConfig(result.config)
+            // Atualizar localStorage com dados do backend
+            localStorage.setItem('iot-alert-config', JSON.stringify(result.config))
+          }
+        }
       } catch (error) {
         console.error('Erro ao carregar configurações:', error)
       }
     }
+    
+    carregarConfiguracoes()
   }, [])
 
   // Salvar configurações
   const salvarConfiguracoes = async () => {
     setIsSaving(true)
     try {
+      // Salvar no localStorage (frontend)
       localStorage.setItem('iot-alert-config', JSON.stringify(config))
       
-      toast({
-        title: "✅ Configurações salvas!",
-        description: "Alertas atualizados com sucesso.",
+      // Enviar para o backend
+      const response = await fetch('/api/config-alertas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config)
       })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        toast({
+          title: "✅ Configurações salvas!",
+          description: "Alertas atualizados no sistema.",
+        })
+      } else {
+        throw new Error(result.error || 'Erro desconhecido')
+      }
+      
     } catch (error) {
+      console.error('Erro ao salvar configurações:', error)
       toast({
         title: "❌ Erro ao salvar",
-        description: "Não foi possível salvar as configurações.",
+        description: "Não foi possível salvar as configurações no backend.",
         variant: "destructive"
       })
     } finally {
@@ -67,6 +101,32 @@ export function ConfigView() {
       title: "🔄 Configurações resetadas",
       description: "Valores padrão restaurados.",
     })
+  }
+
+  // Testar conexão com backend
+  const testarConexao = async () => {
+    try {
+      const response = await fetch('/api/config-alertas')
+      const result = await response.json()
+      
+      if (result.success) {
+        toast({
+          title: "✅ Conexão OK!",
+          description: "Backend respondendo corretamente.",
+        })
+      } else {
+        toast({
+          title: "⚠️ Backend não configurado",
+          description: "Ainda não há configurações salvas no backend.",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Erro de conexão",
+        description: "Não foi possível conectar ao backend.",
+        variant: "destructive"
+      })
+    }
   }
 
   return (
@@ -192,6 +252,14 @@ export function ConfigView() {
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Restaurar Padrão
+        </Button>
+        
+        <Button 
+          onClick={testarConexao}
+          variant="secondary"
+          className="flex-1 sm:flex-none sm:min-w-[120px]"
+        >
+          🔗 Testar Backend
         </Button>
       </div>
 
