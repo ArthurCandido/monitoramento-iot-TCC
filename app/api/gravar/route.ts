@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { dataStore } from '@/lib/data-store'
+import { dbStore } from '@/lib/db-store'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,18 +39,20 @@ export async function POST(request: NextRequest) {
       luz: body.luz,  // usar valor direto do ESP32
       mov: body.mov,
       alertaAr: "OK",
-      alertaLuz: "OK"
+      alertaLuz: "OK",
+      timestamp: body.timestamp
     }
     
-    console.log('Dados salvos diretamente:', dataForStore)
+    console.log('Dados para PostgreSQL:', dataForStore)
     
-    // Salva os dados no data store
-    dataStore.updateData(dataForStore)
+    // Salva os dados no PostgreSQL
+    const savedData = await dbStore.updateData(dataForStore)
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Dados do sensor recebidos com sucesso',
+      message: 'Dados salvos no PostgreSQL com sucesso',
       receivedAt: new Date().toISOString(),
+      savedId: savedData.id,
       data: {
         temperatura: body.temp,
         umidade: body.umid,

@@ -1,60 +1,41 @@
 import { NextResponse } from "next/server";
-import { dataStore } from '@/lib/data-store';
+import { dbStore } from '@/lib/db-store';
 
 export async function GET() {
-  console.log("🔵 GET /atual executando");
+  console.log("🔵 GET /atual executando (PostgreSQL)");
   
   try {
-    // SEMPRE tentar recarregar do cache primeiro (instâncias serverless isoladas)
-    console.log("🔄 Forçando reload do cache...");
-    const reloaded = dataStore.forceReloadCache();
-    
-    let currentData = dataStore.getCurrentData();
+    // Buscar dados diretamente do PostgreSQL
+    const currentData = await dbStore.getCurrentData();
     
     if (currentData) {
-      console.log("✅ Retornando dados do store:", currentData);
-      return NextResponse.json(currentData);
+      console.log("✅ Dados encontrados no PostgreSQL:", currentData);
+      
+      // Retornar no formato esperado pelo frontend
+      return NextResponse.json({
+        id: currentData.id,
+        temperatura: currentData.temperatura,
+        umidade: currentData.umidade,
+        luminosidade: currentData.luminosidade,
+        movimento: currentData.movimento,
+        alerta_ar: currentData.alerta_ar,
+        alerta_luz: currentData.alerta_luz,
+        data_hora: currentData.timestamp,
+        esp32_timestamp: currentData.esp32_timestamp
+      });
     }
     
-    // Se não conseguiu recarregar, verificar cache de processo diretamente
-    const cachedData = process.env.CACHE_CURRENT_DATA;
-    const lastUpdate = process.env.CACHE_LAST_UPDATE;
-    
-    if (cachedData && lastUpdate) {
-      console.log("📂 Lendo cache de processo direto");
-      const data = JSON.parse(cachedData);
-      
-      const directData = {
-        temperatura: data.temp,
-        umidade: data.umid,
-        luminosidade: data.luz,
-        movimento: data.mov,
-        alerta_ar: data.alertaAr || 'OK',
-        alerta_luz: data.alertaLuz || 'OK',
-        data_hora: new Date(parseInt(lastUpdate)).toISOString(),
-        id: Date.now() // ID único baseado em timestamp
-      };
-      
-      console.log("✅ Retornando dados direto do cache:", directData);
-      return NextResponse.json(directData);
-    }
-    
-    // Fallback: sem dados disponíveis
-    console.log("❌ Nenhum dado disponível no cache");
+    // Sem dados disponíveis
+    console.log("❌ Nenhum dado disponível no PostgreSQL");
     return NextResponse.json({
       error: "Nenhum dado disponível",
-      message: "Aguardando dados do ESP32",
-      debug: {
-        hasCache: !!cachedData,
-        hasTimestamp: !!lastUpdate,
-        envKeys: Object.keys(process.env).filter(k => k.startsWith('CACHE_'))
-      }
+      message: "Aguardando dados do ESP32"
     }, { status: 404 });
     
   } catch (error) {
-    console.log("💥 Erro geral:", error);
+    console.log("💥 Erro ao buscar dados:", error);
     return NextResponse.json({ 
-      error: "Server error", 
+      error: "Erro no banco de dados", 
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
