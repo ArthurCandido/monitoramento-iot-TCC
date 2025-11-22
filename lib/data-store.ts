@@ -49,10 +49,19 @@ class DataStore {
   private saveToMemoryCache() {
     try {
       if (this.storage.currentData) {
-        // Usa uma variável global de processo como cache temporário
-        process.env.CACHE_CURRENT_DATA = JSON.stringify(this.storage.currentData)
+        // Salva dados no formato ESP32 para compatibilidade
+        const dataToCache = {
+          temp: this.storage.currentData.temperatura,
+          umid: this.storage.currentData.umidade,
+          luz: this.storage.currentData.luminosidade,
+          mov: this.storage.currentData.movimento,
+          alertaAr: this.storage.currentData.alerta_ar,
+          alertaLuz: this.storage.currentData.alerta_luz
+        }
+        
+        process.env.CACHE_CURRENT_DATA = JSON.stringify(dataToCache)
         process.env.CACHE_LAST_UPDATE = String(Date.now())
-        console.log('💾 Dados salvos no cache de memória')
+        console.log('💾 Dados salvos no cache de processo:', dataToCache)
       }
     } catch (error) {
       console.log('⚠️ Erro ao salvar cache:', error)
@@ -64,15 +73,38 @@ class DataStore {
       const cachedData = process.env.CACHE_CURRENT_DATA
       const lastUpdate = process.env.CACHE_LAST_UPDATE
       
+      console.log('🔍 Verificando cache de processo:', {
+        hasCachedData: !!cachedData,
+        lastUpdate: lastUpdate,
+        env: Object.keys(process.env).filter(k => k.startsWith('CACHE_'))
+      })
+      
       if (cachedData && lastUpdate) {
         const age = Date.now() - parseInt(lastUpdate)
         // Cache válido por 5 minutos
         if (age < 5 * 60 * 1000) {
-          this.storage.currentData = JSON.parse(cachedData)
+          const parsedData = JSON.parse(cachedData)
+          
+          // Converter para o formato correto do SensorData
+          this.storage.currentData = {
+            temperatura: parsedData.temp || parsedData.temperatura,
+            umidade: parsedData.umid || parsedData.umidade,
+            luminosidade: parsedData.luz || parsedData.luminosidade,
+            movimento: parsedData.mov || parsedData.movimento,
+            alerta_ar: parsedData.alertaAr || parsedData.alerta_ar || 'OK',
+            alerta_luz: parsedData.alertaLuz || parsedData.alerta_luz || 'OK',
+            data_hora: new Date(parseInt(lastUpdate)).toISOString(),
+            id: this.storage.nextId++
+          }
+          
           this.storage.lastUpdate = parseInt(lastUpdate)
-          console.log('📂 Dados carregados do cache de memória:', this.storage.currentData)
+          console.log('📂 Dados carregados do cache de processo:', this.storage.currentData)
           return
+        } else {
+          console.log('⏰ Cache de processo expirado (age: ' + Math.round(age/1000) + 's)')
         }
+      } else {
+        console.log('❌ Nenhum cache de processo encontrado')
       }
     } catch (error) {
       console.log('⚠️ Erro ao carregar cache:', error)
