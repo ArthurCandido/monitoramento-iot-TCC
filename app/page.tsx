@@ -38,17 +38,18 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Adicionar timestamp para evitar cache do browser
+        // Adicionar timestamp para evitar cache do browser E do Vercel Edge
         const timestamp = Date.now()
+        const cacheBust = Math.random().toString(36).substring(7)
         const [resAtual, resHist] = await Promise.all([
-          fetch(`/api/atual?t=${timestamp}`, {
+          fetch(`/api/atual?t=${timestamp}&bust=${cacheBust}`, {
             cache: 'no-store',
             headers: {
               'Cache-Control': 'no-cache',
               'Pragma': 'no-cache'
             }
           }),
-          fetch(`/api/historico?t=${timestamp}`, {
+          fetch(`/api/historico?t=${timestamp}&bust=${cacheBust}`, {
             cache: 'no-store',
             headers: {
               'Cache-Control': 'no-cache',
