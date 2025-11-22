@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import { dbStore } from '@/lib/db-store';
 
 export async function GET() {
-  console.log("🔵 GET /atual executando (PostgreSQL)");
+  const requestTimestamp = Date.now()
+  console.log(`🔵 GET /atual executando [${requestTimestamp}] (PostgreSQL)`);
   
   try {
-    // Buscar dados diretamente do PostgreSQL
+    // Buscar dados diretamente do PostgreSQL com timestamp único
+    console.log(`🔍 [${requestTimestamp}] Forçando busca fresh do PostgreSQL...`)
     const currentData = await dbStore.getCurrentData();
     
     if (currentData) {
-      console.log("✅ Dados encontrados no PostgreSQL:", currentData);
+      console.log(`✅ [${requestTimestamp}] Dados encontrados no PostgreSQL:`, {
+        id: currentData.id,
+        timestamp: currentData.timestamp,
+        temperatura: currentData.temperatura
+      });
       
       // Retornar no formato esperado pelo frontend
       return NextResponse.json({
@@ -21,12 +27,15 @@ export async function GET() {
         alerta_ar: currentData.alerta_ar,
         alerta_luz: currentData.alerta_luz,
         data_hora: currentData.timestamp,
-        esp32_timestamp: currentData.esp32_timestamp
+        esp32_timestamp: currentData.esp32_timestamp,
+        _fetched_at: new Date().toISOString(),
+        _request_id: requestTimestamp
       }, {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Request-ID': requestTimestamp.toString()
         }
       });
     }
