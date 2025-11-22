@@ -103,32 +103,6 @@ export function ConfigView() {
     })
   }
 
-  // Testar conexão com backend
-  const testarConexao = async () => {
-    try {
-      const response = await fetch('/api/config-alertas')
-      const result = await response.json()
-      
-      if (result.success) {
-        toast({
-          title: "✅ Conexão OK!",
-          description: "Backend respondendo corretamente.",
-        })
-      } else {
-        toast({
-          title: "⚠️ Backend não configurado",
-          description: "Ainda não há configurações salvas no backend.",
-        })
-      }
-    } catch (error) {
-      toast({
-        title: "❌ Erro de conexão",
-        description: "Não foi possível conectar ao backend.",
-        variant: "destructive"
-      })
-    }
-  }
-
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
@@ -257,14 +231,6 @@ export function ConfigView() {
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Restaurar Padrão
-        </Button>
-        
-        <Button 
-          onClick={testarConexao}
-          variant="secondary"
-          className="flex-1 sm:flex-none sm:min-w-[120px]"
-        >
-          🔗 Testar Backend
         </Button>
       </div>
 

@@ -77,9 +77,9 @@ export async function GET() {
           systemStatus.esp32 = {
             lastDataReceived: last_record,
             secondsSinceLastData: secondsAgo,
-            status: secondsAgo <= 15 ? 'connected' :    // Conectado se última transmissão ≤ 15s
-                   secondsAgo <= 60 ? 'stale' :         // Dados antigos se ≤ 60s
-                   'disconnected'                       // Desconectado se > 60s
+            status: secondsAgo <= 10 ? 'connected' :     // Conectado se última transmissão ≤ 10s (ESP32 envia a cada 5s)
+                   secondsAgo <= 30 ? 'stale' :          // Dados antigos se ≤ 30s 
+                   'disconnected'                        // Desconectado se > 30s
           }
         }
       }

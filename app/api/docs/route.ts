@@ -419,9 +419,9 @@ Verifica saúde de todos os componentes do sistema IoT.
 - 🕐 **Tempo real**: Detecta se dados estão frescos (≤30s) ou antigos
 
 ### Estados ESP32:
-- **connected**: Último dado ≤ 15 segundos
-- **stale**: Último dado 15s - 1 minuto  
-- **disconnected**: Último dado > 1 minuto
+- **connected**: Último dado ≤ 10 segundos (ESP32 transmite a cada 5s)
+- **stale**: Último dado 10s - 30s  
+- **disconnected**: Último dado > 30 segundos
         `,
         responses: {
           200: {
