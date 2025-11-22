@@ -32,14 +32,42 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Use dados diretos do ESP32 sem conversões
+    // Aplicar lógica de alertas baseada nos dados ESP32
+    const alertConfig = {
+      temperaturaLimite: 23, // Configurações padrão - podem ser dinâmicas depois
+      luminosidadeLimite: 2500,
+      tempoSemMovimento: 20 // 20 segundos para teste
+    }
+    
+    let alertaAr = "OK"
+    let alertaLuz = "OK"
+    
+    // Alerta de Ar Condicionado: temperatura baixa sem movimento
+    if (body.temp < alertConfig.temperaturaLimite && body.mov === "Nenhum") {
+      alertaAr = `❄️ Ar condicionado pode estar ligado sem ninguém na sala (${body.temp}°C)`
+    }
+    
+    // Alerta de Luzes: alta luminosidade sem movimento  
+    if (body.luz > alertConfig.luminosidadeLimite && body.mov === "Nenhum") {
+      alertaLuz = `💡 Luz pode ter ficado ligada sem ninguém na sala (${body.luz} lux)`
+    }
+    
+    console.log('🔍 Avaliação de alertas:', {
+      temperatura: body.temp,
+      movimento: body.mov,
+      luminosidade: body.luz,
+      alertaAr,
+      alertaLuz
+    })
+    
+    // Use dados diretos do ESP32 com alertas processados
     const dataForStore = {
       temp: body.temp,
       umid: body.umid,
-      luz: body.luz,  // usar valor direto do ESP32
+      luz: body.luz,
       mov: body.mov,
-      alertaAr: "OK",
-      alertaLuz: "OK",
+      alertaAr: alertaAr,
+      alertaLuz: alertaLuz,
       timestamp: body.timestamp
     }
     
@@ -67,9 +95,14 @@ export async function POST(request: NextRequest) {
       data: {
         temperatura: body.temp,
         umidade: body.umid,
-        luminosidade: body.luz,  // valor original ESP32
+        luminosidade: body.luz,
         movimento: body.mov,
         timestamp: body.timestamp
+      },
+      alerts: {
+        ar_condicionado: alertaAr,
+        luzes: alertaLuz,
+        hasAlerts: alertaAr !== "OK" || alertaLuz !== "OK"
       }
     })
     
