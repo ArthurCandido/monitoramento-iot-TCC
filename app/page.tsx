@@ -61,6 +61,9 @@ export default function Dashboard() {
           const dataAtual = await resAtual.json()
           const dataHist = await resHist.json()
 
+          console.log('🔄 Frontend: Dados recebidos da API atual:', dataAtual)
+          console.log('🔄 Frontend: Dados recebidos da API histórico:', dataHist)
+
           setCurrentData(dataAtual)
           setHistoryData(dataHist)
           setConnectionStatus('connected')
