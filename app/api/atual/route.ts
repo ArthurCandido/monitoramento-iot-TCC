@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { dataStore } from '@/lib/data-store'
 
-import { NextResponse } from 'next/server'
-import { dataStore } from '@/lib/data-store'
-
 export async function GET(request: Request) {
   try {
     console.log('🔍 GET /api/atual - Buscando dados atuais...')
