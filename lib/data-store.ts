@@ -110,9 +110,8 @@ class DataStore {
       console.log('⚠️ Erro ao carregar cache:', error)
     }
     
-    // Fallback para dados iniciais se cache não disponível
-    console.log('🔄 Cache não disponível, usando dados iniciais')
-    this.initializeWithSampleData()
+    // NÃO carregar dados de exemplo - aguardar dados reais do ESP32
+    console.log('⏳ Aguardando dados reais do ESP32...')
   }
 
   // Armazena dados atuais e adiciona ao histórico
@@ -208,5 +207,5 @@ class DataStore {
 // Instância global do store
 export const dataStore = new DataStore()
 
-// Inicializa com dados de exemplo
-dataStore.initializeWithSampleData()
+// REMOVER dados de exemplo - apenas em desenvolvimento
+// dataStore.initializeWithSampleData()
