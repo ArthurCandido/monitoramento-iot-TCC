@@ -8,14 +8,13 @@ export async function POST(request: NextRequest) {
     // Log the received data from ESP32
     console.log('Received sensor data:', body)
     
-    // ESP32 sends data in this format:
+    // ESP32 sends data in this format (simplified version):
     // {
     //   temp: number,        // temperatura em °C
     //   umid: number,        // umidade em %
     //   luz: number,         // luminosidade (valor ADC)
     //   mov: string,         // "Detectado" ou "Nenhum"
-    //   alertaAr: string,    // status do ar condicionado
-    //   alertaLuz: string    // status da iluminação
+    //   timestamp: number    // timestamp em millis
     // }
     
     // Validate the data structure (ESP32 format)
@@ -33,41 +32,36 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Normalize the data for internal use
-    const normalizedData = {
-      temperature: body.temp,
-      humidity: body.umid,
-      lightLevel: body.luz,
-      motion: body.mov === "Detectado" ? true : false,
-      motionStatus: body.mov,
-      airConditioningAlert: body.alertaAr || "OK",
-      lightAlert: body.alertaLuz || "OK",
-      timestamp: new Date().toISOString(),
-      rawData: body
+    // Convert luminosity to lux approximation 
+    // ESP32 ADC: 0-4095 -> approximated lux conversion
+    const lux = Math.round((body.luz / 4095) * 10000)
+    
+    // Prepare data for data store (legacy format compatibility)
+    const dataForStore = {
+      temp: body.temp,
+      umid: body.umid,
+      luz: lux,  // converted to lux approximation
+      mov: body.mov,
+      alertaAr: "OK",  // Always OK since logic moved to frontend
+      alertaLuz: "OK"  // Always OK since logic moved to frontend
     }
     
-    // Log normalized data
-    console.log('Normalized sensor data:', normalizedData)
+    // Log processed data
+    console.log('Processed sensor data for store:', dataForStore)
     
     // Salva os dados no data store
-    dataStore.updateData(body)
-    
-    // TODO: Save to database here if needed
-    // Example: await saveToDatabase(normalizedData)
+    dataStore.updateData(dataForStore)
     
     return NextResponse.json({ 
       success: true, 
       message: 'Dados do sensor recebidos com sucesso',
-      receivedAt: normalizedData.timestamp,
+      receivedAt: new Date().toISOString(),
       data: {
         temperatura: body.temp,
         umidade: body.umid,
-        luminosidade: body.luz,
+        luminosidade: lux,
         movimento: body.mov,
-        alertas: {
-          ar: body.alertaAr,
-          luz: body.alertaLuz
-        }
+        timestamp: body.timestamp
       }
     })
     
@@ -95,15 +89,15 @@ export async function POST(request: NextRequest) {
 // Handle other HTTP methods
 export async function GET() {
   return NextResponse.json({ 
-    message: 'Endpoint para recebimento de dados do ESP32',
+    message: 'Endpoint para recebimento de dados do ESP32 (versão simplificada)',
     method: 'POST',
     expectedFormat: {
       temp: 'number (°C)',
       umid: 'number (%)',
-      luz: 'number (valor ADC)', 
+      luz: 'number (valor ADC 0-4095)', 
       mov: 'string (Detectado/Nenhum)',
-      alertaAr: 'string (status ar condicionado)',
-      alertaLuz: 'string (status iluminação)'
-    }
+      timestamp: 'number (millis - opcional)'
+    },
+    note: 'Alertas são processados no frontend baseado nas configurações do usuário'
   })
 }

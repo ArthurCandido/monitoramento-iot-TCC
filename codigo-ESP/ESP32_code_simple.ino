@@ -9,8 +9,8 @@
 // ============================================================
 // CONFIGURAÇÕES DE REDE
 // ============================================================
-const char* ssid = "";  // Configure sua rede WiFi
-const char* password = "";
+const char* ssid = "Nerdhouse";  // Configure sua rede WiFi
+const char* password = "13022412";
 
 // URL do servidor Vercel
 String serverName = "https://monitoramento-iot-tcc.vercel.app/api/gravar";
@@ -28,6 +28,17 @@ const int pinoLED = 2;       // LED de status
 // ============================================================
 #define DHTTYPE DHT11
 DHT dht(pinoDHT, DHTTYPE);
+
+// ============================================================
+// ESTRUTURA DE DADOS DOS SENSORES
+// ============================================================
+struct DadosSensores {
+  float temperatura;
+  float umidade;
+  int luminosidade;
+  bool movimento;
+  unsigned long timestamp;
+};
 
 // ============================================================
 // VARIÁVEIS DE CONTROLE
@@ -98,14 +109,6 @@ void conectarWiFi() {
 // ============================================================
 // COLETA DE DADOS DOS SENSORES
 // ============================================================
-struct DadosSensores {
-  float temperatura;
-  float umidade;
-  int luminosidade;
-  bool movimento;
-  unsigned long timestamp;
-};
-
 DadosSensores coletarDados() {
   DadosSensores dados;
   

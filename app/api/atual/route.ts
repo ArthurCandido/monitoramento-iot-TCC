@@ -8,11 +8,24 @@ export async function GET() {
     if (!currentData) {
       return NextResponse.json(
         { error: 'Nenhum dado disponível ainda' }, 
-        { status: 404 }
+        { 
+          status: 404,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       )
     }
     
-    return NextResponse.json(currentData)
+    return NextResponse.json(currentData, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache', 
+        'Expires': '0'
+      }
+    })
     
   } catch (error) {
     console.error('Erro ao buscar dados atuais:', error)

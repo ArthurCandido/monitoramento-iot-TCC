@@ -8,6 +8,7 @@ import HistoryView from '@/components/history-view'
 import AlertsView from '@/components/alerts-view'
 import StatusView from '@/components/status-view'
 import { ConfigView } from '@/components/config-view'
+import { useAlertSystem } from '@/hooks/use-alert-system'
 
 interface SensorData {
   temperatura: number
