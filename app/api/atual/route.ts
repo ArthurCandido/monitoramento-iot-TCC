@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server'
-import { dataStore } from '@/lib/data-store'
-
-import { NextResponse } from 'next/server'
 
 export async function GET() {
   console.log('🔍 GET /api/atual - TESTE SIMPLES')
