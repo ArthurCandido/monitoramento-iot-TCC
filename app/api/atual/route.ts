@@ -22,6 +22,12 @@ export async function GET() {
         alerta_luz: currentData.alerta_luz,
         data_hora: currentData.timestamp,
         esp32_timestamp: currentData.esp32_timestamp
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
     }
     

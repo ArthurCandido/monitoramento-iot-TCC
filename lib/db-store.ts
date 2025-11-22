@@ -67,7 +67,7 @@ class PostgresDataStore {
   // Busca os dados mais recentes
   async getCurrentData(): Promise<SensorData | null> {
     try {
-      console.log('🔍 Buscando dados atuais no PostgreSQL...')
+      console.log('🔍 Buscando dados atuais no PostgreSQL (sem cache)...')
       
       const result = await sql`
         SELECT 
@@ -81,9 +81,11 @@ class PostgresDataStore {
           timestamp,
           esp32_timestamp
         FROM sensor_data 
-        ORDER BY id DESC 
+        ORDER BY timestamp DESC, id DESC 
         LIMIT 1;
       `
+      
+      console.log('🔍 Query result:', result.rows)
       
       if (result.rows.length === 0) {
         console.log('❌ Nenhum dado encontrado')
@@ -103,7 +105,11 @@ class PostgresDataStore {
         esp32_timestamp: row.esp32_timestamp
       }
       
-      console.log('✅ Dados encontrados:', sensorData)
+      console.log('✅ Dados mais recentes encontrados:', {
+        id: sensorData.id,
+        timestamp: sensorData.timestamp,
+        temperatura: sensorData.temperatura
+      })
       return sensorData
       
     } catch (error) {
