@@ -13,10 +13,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    if (tempoSemMovimento < 10 || tempoSemMovimento > 300) {
+    if (tempoSemMovimento < 10) {
       return NextResponse.json({
         success: false,
-        error: 'tempoSemMovimento deve estar entre 10 e 300 segundos'
+        error: 'tempoSemMovimento deve ser no mínimo 10 segundos'
       }, { status: 400 })
     }
     

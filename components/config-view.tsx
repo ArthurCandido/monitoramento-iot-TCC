@@ -229,11 +229,10 @@ export function ConfigView() {
                 value={config.tempoSemMovimento}
                 onChange={(e) => setConfig({...config, tempoSemMovimento: Number(e.target.value)})}
                 min="10"
-                max="300"
                 className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Entre 10 segundos e 5 minutos (300s)
+                Mínimo de 10 segundos
               </p>
             </div>
           </div>
