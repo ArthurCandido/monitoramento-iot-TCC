@@ -167,8 +167,8 @@ class PostgresDataStore {
           umidade DECIMAL(5,2) NOT NULL, 
           luminosidade INTEGER NOT NULL,
           movimento VARCHAR(20) NOT NULL,
-          alerta_ar VARCHAR(20) DEFAULT 'OK',
-          alerta_luz VARCHAR(20) DEFAULT 'OK',
+          alerta_ar VARCHAR(200) DEFAULT 'OK',
+          alerta_luz VARCHAR(200) DEFAULT 'OK',
           timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           esp32_timestamp BIGINT
         );
