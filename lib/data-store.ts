@@ -1,4 +1,5 @@
 // Sistema de armazenamento com persistência para Vercel serverless
+// Usa variáveis de processo compartilhadas e cache de arquivo temporário
 
 export interface SensorData {
   temperatura: number
@@ -17,12 +18,13 @@ export interface HistoryData {
   data_hora: string
 }
 
-// Global storage para persistir entre execuções de função serverless
+// Cache em processo - funciona apenas dentro da mesma instância
 declare global {
   var __dataStore: {
     currentData: SensorData | null
     historyData: HistoryData[]
     nextId: number
+    lastUpdate: number
   } | undefined
 }
 
@@ -33,10 +35,52 @@ class DataStore {
       global.__dataStore = {
         currentData: null,
         historyData: [],
-        nextId: 1
+        nextId: 1,
+        lastUpdate: 0
       }
+      
+      // Tentar carregar dados do cache em memória (se existir)
+      this.loadFromMemoryCache()
     }
     return global.__dataStore
+  }
+
+  // Simula um cache compartilhado usando variáveis de ambiente de processo
+  private saveToMemoryCache() {
+    try {
+      if (this.storage.currentData) {
+        // Usa uma variável global de processo como cache temporário
+        process.env.CACHE_CURRENT_DATA = JSON.stringify(this.storage.currentData)
+        process.env.CACHE_LAST_UPDATE = String(Date.now())
+        console.log('💾 Dados salvos no cache de memória')
+      }
+    } catch (error) {
+      console.log('⚠️ Erro ao salvar cache:', error)
+    }
+  }
+
+  private loadFromMemoryCache() {
+    try {
+      const cachedData = process.env.CACHE_CURRENT_DATA
+      const lastUpdate = process.env.CACHE_LAST_UPDATE
+      
+      if (cachedData && lastUpdate) {
+        const age = Date.now() - parseInt(lastUpdate)
+        // Cache válido por 5 minutos
+        if (age < 5 * 60 * 1000) {
+          this.storage.currentData = JSON.parse(cachedData)
+          this.storage.lastUpdate = parseInt(lastUpdate)
+          console.log('📂 Dados carregados do cache de memória:', this.storage.currentData)
+          return
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Erro ao carregar cache:', error)
+    }
+    
+    // Fallback para dados iniciais se cache não disponível
+    console.log('🔄 Cache não disponível, usando dados iniciais')
+    this.initializeWithSampleData()
   }
 
   // Armazena dados atuais e adiciona ao histórico
@@ -62,7 +106,12 @@ class DataStore {
       data_hora: now,
       id: this.storage.nextId++
     }
+    this.storage.lastUpdate = Date.now()
+    
     console.log('✅ DataStore.currentData updated to:', this.storage.currentData)
+
+    // Salva no cache de memória
+    this.saveToMemoryCache()
 
     // Adiciona ao histórico
     const historyEntry: HistoryData = {
@@ -82,6 +131,12 @@ class DataStore {
   getCurrentData(): SensorData | null {
     console.log('🔎 DataStore.getCurrentData called, returning:', this.storage.currentData)
     return this.storage.currentData
+  }
+
+  // Força recarregamento do cache de memória
+  forceReloadCache() {
+    console.log('🔄 Forçando reload do cache...')
+    this.loadFromMemoryCache()
   }
 
   getHistoryData(): HistoryData[] {

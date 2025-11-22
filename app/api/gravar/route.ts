@@ -52,6 +52,13 @@ export async function POST(request: NextRequest) {
     // Salva os dados no data store
     dataStore.updateData(dataForStore)
     
+    // Criar URL de sincronização para outras instâncias
+    const syncData = Buffer.from(JSON.stringify(dataForStore)).toString('base64')
+    const syncTimestamp = Date.now()
+    const syncUrl = `${new URL(request.url).origin}/api/sync?data=${encodeURIComponent(syncData)}&ts=${syncTimestamp}`
+    
+    console.log('🔗 URL de sincronização criada:', syncUrl)
+    
     return NextResponse.json({ 
       success: true, 
       message: 'Dados do sensor recebidos com sucesso',
@@ -62,7 +69,8 @@ export async function POST(request: NextRequest) {
         luminosidade: lux,
         movimento: body.mov,
         timestamp: body.timestamp
-      }
+      },
+      syncUrl: syncUrl // URL para outras instâncias buscarem dados atuais
     })
     
   } catch (error) {
