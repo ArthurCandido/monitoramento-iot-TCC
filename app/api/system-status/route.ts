@@ -68,18 +68,34 @@ export async function GET() {
           lastRecord: last_record
         }
 
-        // Verificar status do ESP32 baseado na última entrada
+        // Verificar status do ESP32 baseado na última entrada e intervalo esperado
         if (last_record) {
           const lastDataTime = new Date(last_record).getTime()
           const now = Date.now()
           const secondsAgo = Math.floor((now - lastDataTime) / 1000)
           
+          // ESP32 transmite a cada 5 segundos
+          const ESP32_INTERVAL = 5 // segundos
+          const TOLERANCE = 2 // tolerância adicional
+          
+          // Calcular status baseado no intervalo esperado
+          let status: 'connected' | 'stale' | 'disconnected'
+          
+          if (secondsAgo <= ESP32_INTERVAL + TOLERANCE) {
+            // Dentro do intervalo esperado (≤ 7s) = conectado
+            status = 'connected'
+          } else if (secondsAgo <= (ESP32_INTERVAL * 3) + TOLERANCE) {
+            // Perdeu 1-2 transmissões (7s-17s) = dados antigos
+            status = 'stale'
+          } else {
+            // Perdeu 3+ transmissões (>17s) = desconectado  
+            status = 'disconnected'
+          }
+          
           systemStatus.esp32 = {
             lastDataReceived: last_record,
             secondsSinceLastData: secondsAgo,
-            status: secondsAgo <= 10 ? 'connected' :     // Conectado se última transmissão ≤ 10s (ESP32 envia a cada 5s)
-                   secondsAgo <= 30 ? 'stale' :          // Dados antigos se ≤ 30s 
-                   'disconnected'                        // Desconectado se > 30s
+            status: status
           }
         }
       }
