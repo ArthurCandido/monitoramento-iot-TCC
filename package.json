@@ -110,6 +110,8 @@
 
     "path": "latest",
 
+    "postgres": "^3.4.4",
+
     "react": "19.2.0",
 
     "react-day-picker": "9.8.0",
@@ -127,6 +129,10 @@
     "sonner": "^1.7.4",
 
     "sqlite3": "latest",
+
+    "swagger-jsdoc": "^6.2.8",
+
+    "swagger-ui-react": "^5.30.2",
 
     "tailwind-merge": "^2.5.5",
 

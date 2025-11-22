@@ -8,6 +8,7 @@ import HistoryView from '@/components/history-view'
 import AlertsView from '@/components/alerts-view'
 import StatusView from '@/components/status-view'
 import { ConfigView } from '@/components/config-view'
+import ApiDocsPage from '@/app/docs/page'
 import { useAlertSystem } from '@/hooks/use-alert-system'
 
 interface SensorData {
@@ -107,6 +108,8 @@ export default function Dashboard() {
         return <StatusView connectionStatus={connectionStatus} />
       case 'config':
         return <ConfigView />
+      case 'docs':
+        return <ApiDocsPage />
       default:
         return (
           <DashboardView

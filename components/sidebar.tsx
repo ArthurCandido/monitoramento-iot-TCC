@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings } from 'lucide-react'
+import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText } from 'lucide-react'
 
 interface SidebarProps {
   activeSection: string
@@ -48,6 +48,12 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       name: 'Configurações',
       icon: Settings,
       description: 'Configurar alertas e sistema',
+    },
+    {
+      id: 'docs',
+      name: 'API Docs',
+      icon: FileText,
+      description: 'Documentação da API',
     },
   ]
 
