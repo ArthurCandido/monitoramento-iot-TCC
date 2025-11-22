@@ -165,47 +165,41 @@ class DataStore {
   }
 
   // Força recarregamento do cache de memória
-  forceReloadCache() {
+  forceReloadCache(): boolean {
     console.log('🔄 Forçando reload do cache...')
-    this.loadFromMemoryCache()
+    
+    const cachedData = process.env.CACHE_CURRENT_DATA
+    const lastUpdate = process.env.CACHE_LAST_UPDATE
+    
+    if (cachedData && lastUpdate) {
+      try {
+        const parsedData = JSON.parse(cachedData)
+        
+        this.storage.currentData = {
+          temperatura: parsedData.temp,
+          umidade: parsedData.umid,
+          luminosidade: parsedData.luz,
+          movimento: parsedData.mov,
+          alerta_ar: parsedData.alertaAr || 'OK',
+          alerta_luz: parsedData.alertaLuz || 'OK',
+          data_hora: new Date(parseInt(lastUpdate)).toISOString(),
+          id: this.storage.nextId++
+        }
+        
+        console.log('✅ Cache recarregado')
+        return true
+      } catch (error) {
+        console.log('❌ Erro ao recarregar:', error)
+      }
+    }
+    
+    return false
   }
 
   getHistoryData(): HistoryData[] {
-    console.log('🔎 DataStore.getHistoryData called, returning:', {
-      count: this.storage.historyData.length,
-      data: this.storage.historyData.slice(0, 3) // primeiros 3 para debug
-    })
     return this.storage.historyData
-  }
-
-  // Gera dados iniciais fictícios para teste
-  initializeWithSampleData() {
-    if (!this.storage.currentData) {
-      this.updateData({
-        temp: 24.5,
-        umid: 65.2,
-        luz: 1200,
-        mov: 'Nenhum',
-        alertaAr: 'OK',
-        alertaLuz: 'OK'
-      })
-
-      // Adiciona alguns dados históricos fictícios
-      const now = Date.now()
-      for (let i = 1; i <= 10; i++) {
-        const pastTime = new Date(now - (i * 5 * 60 * 1000)) // 5 minutos atrás para cada entrada
-        this.storage.historyData.push({
-          temperatura: 24 + Math.random() * 4, // 24-28°C
-          luminosidade: 1000 + Math.random() * 1000, // 1000-2000
-          data_hora: pastTime.toISOString()
-        })
-      }
-    }
   }
 }
 
 // Instância global do store
 export const dataStore = new DataStore()
-
-// REMOVER dados de exemplo - apenas em desenvolvimento
-// dataStore.initializeWithSampleData()

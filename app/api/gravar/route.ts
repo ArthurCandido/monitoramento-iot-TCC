@@ -32,32 +32,20 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Convert luminosity to lux approximation 
-    // ESP32 ADC: 0-4095 -> approximated lux conversion
-    const lux = Math.round((body.luz / 4095) * 10000)
-    
-    // Prepare data for data store (legacy format compatibility)
+    // Use dados diretos do ESP32 sem conversões
     const dataForStore = {
       temp: body.temp,
       umid: body.umid,
-      luz: lux,  // converted to lux approximation
+      luz: body.luz,  // usar valor direto do ESP32
       mov: body.mov,
-      alertaAr: "OK",  // Always OK since logic moved to frontend
-      alertaLuz: "OK"  // Always OK since logic moved to frontend
+      alertaAr: "OK",
+      alertaLuz: "OK"
     }
     
-    // Log processed data
-    console.log('Processed sensor data for store:', dataForStore)
+    console.log('Dados salvos diretamente:', dataForStore)
     
     // Salva os dados no data store
     dataStore.updateData(dataForStore)
-    
-    // Criar URL de sincronização para outras instâncias
-    const syncData = Buffer.from(JSON.stringify(dataForStore)).toString('base64')
-    const syncTimestamp = Date.now()
-    const syncUrl = `${new URL(request.url).origin}/api/sync?data=${encodeURIComponent(syncData)}&ts=${syncTimestamp}`
-    
-    console.log('🔗 URL de sincronização criada:', syncUrl)
     
     return NextResponse.json({ 
       success: true, 
@@ -66,11 +54,10 @@ export async function POST(request: NextRequest) {
       data: {
         temperatura: body.temp,
         umidade: body.umid,
-        luminosidade: lux,
+        luminosidade: body.luz,  // valor original ESP32
         movimento: body.mov,
         timestamp: body.timestamp
-      },
-      syncUrl: syncUrl // URL para outras instâncias buscarem dados atuais
+      }
     })
     
   } catch (error) {
