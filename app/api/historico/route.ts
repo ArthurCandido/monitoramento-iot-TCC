@@ -3,7 +3,13 @@ import { dataStore } from '@/lib/data-store'
 
 export async function GET() {
   try {
+    console.log('🔍 GET /api/historico - Buscando dados históricos...')
     const historyData = dataStore.getHistoryData()
+    console.log('📈 History data from store:', { 
+      count: historyData.length, 
+      first: historyData[0],
+      last: historyData[historyData.length - 1]
+    })
     
     return NextResponse.json(historyData, {
       headers: {

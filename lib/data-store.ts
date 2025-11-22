@@ -32,6 +32,7 @@ class DataStore {
     alertaLuz?: string
   }) {
     const now = new Date().toISOString()
+    console.log('💾 DataStore.updateData called with:', esp32Data)
     
     // Dados atuais no formato esperado pelo frontend
     this.currentData = {
@@ -44,6 +45,7 @@ class DataStore {
       data_hora: now,
       id: this.nextId++
     }
+    console.log('✅ DataStore.currentData updated to:', this.currentData)
 
     // Adiciona ao histórico
     const historyEntry: HistoryData = {
@@ -61,10 +63,15 @@ class DataStore {
   }
 
   getCurrentData(): SensorData | null {
+    console.log('🔎 DataStore.getCurrentData called, returning:', this.currentData)
     return this.currentData
   }
 
   getHistoryData(): HistoryData[] {
+    console.log('🔎 DataStore.getHistoryData called, returning:', {
+      count: this.historyData.length,
+      data: this.historyData.slice(0, 3) // primeiros 3 para debug
+    })
     return this.historyData
   }
 

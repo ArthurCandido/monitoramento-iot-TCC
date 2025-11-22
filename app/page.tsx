@@ -38,9 +38,23 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Adicionar timestamp para evitar cache do browser
+        const timestamp = Date.now()
         const [resAtual, resHist] = await Promise.all([
-          fetch('/api/atual'),
-          fetch('/api/historico'),
+          fetch(`/api/atual?t=${timestamp}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }),
+          fetch(`/api/historico?t=${timestamp}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }),
         ])
 
         if (resAtual.ok && resHist.ok) {
