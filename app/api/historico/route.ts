@@ -1,17 +1,32 @@
-import { NextResponse } from 'next/server'
-import { dataStore } from '@/lib/data-store'
+import { NextResponse, NextRequest } from 'next/server'
+import { dbStore } from '@/lib/db-store'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 GET /api/historico - Buscando dados históricos...')
-    const historyData = dataStore.getHistoryData()
-    console.log('📈 History data from store:', { 
-      count: historyData.length, 
-      first: historyData[0],
-      last: historyData[historyData.length - 1]
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get('limit') || '100')
+    const hours = parseInt(searchParams.get('hours') || '24')
+    
+    console.log(`📊 Buscando histórico PostgreSQL: ${limit} registros, últimas ${hours}h`)
+    
+    const historyData = await dbStore.getHistoryData(limit)
+    const recentData = historyData.filter(record => {
+      const recordTime = new Date(record.timestamp).getTime()
+      const hoursAgo = Date.now() - (hours * 60 * 60 * 1000)
+      return recordTime > hoursAgo
     })
     
-    return NextResponse.json(historyData, {
+    return NextResponse.json({
+      success: true,
+      data: recentData,
+      metadata: {
+        totalReturned: recentData.length,
+        totalRequested: limit,
+        hoursFilter: hours,
+        oldestRecord: recentData[recentData.length - 1]?.timestamp,
+        newestRecord: recentData[0]?.timestamp
+      }
+    }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
         'Pragma': 'no-cache',
@@ -20,10 +35,12 @@ export async function GET() {
     })
     
   } catch (error) {
-    console.error('Erro ao buscar dados do histórico:', error)
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' }, 
-      { status: 500 }
-    )
+    console.error('❌ Erro ao buscar histórico:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Erro ao buscar histórico',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

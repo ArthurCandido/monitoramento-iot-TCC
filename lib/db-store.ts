@@ -184,7 +184,8 @@ class PostgresDataStore {
         SELECT 
           COUNT(*) as total_records,
           AVG(temperatura) as avg_temp,
-          MAX(timestamp) as last_update
+          MAX(timestamp) as last_update,
+          MIN(timestamp) as first_record
         FROM sensor_data;
       `
       
@@ -192,6 +193,46 @@ class PostgresDataStore {
     } catch (error) {
       console.error('❌ Erro ao buscar estatísticas:', error)
       throw error
+    }
+  }
+
+  // Limpeza automática - manter apenas últimos N dias
+  async cleanupOldData(daysToKeep: number = 7) {
+    try {
+      console.log(`🧹 Limpando dados anteriores a ${daysToKeep} dias...`)
+      
+      const result = await sql`
+        DELETE FROM sensor_data 
+        WHERE timestamp < NOW() - INTERVAL '${daysToKeep} days'
+        RETURNING COUNT(*);
+      `
+      
+      const deletedCount = result.rowCount || 0
+      console.log(`✅ ${deletedCount} registros antigos removidos`)
+      
+      return deletedCount
+    } catch (error) {
+      console.error('❌ Erro na limpeza:', error)
+      throw error
+    }
+  }
+
+  // Verificar se precisa de limpeza automática
+  async autoCleanup() {
+    try {
+      const stats = await this.getStats()
+      const totalRecords = parseInt(stats.total_records)
+      
+      // Se tiver mais de 100k registros, fazer limpeza
+      if (totalRecords > 100000) {
+        console.log(`⚠️ Muitos registros (${totalRecords}), fazendo limpeza...`)
+        await this.cleanupOldData(7) // Manter apenas 7 dias
+      }
+      
+      return totalRecords
+    } catch (error) {
+      console.error('❌ Erro no auto-cleanup:', error)
+      return 0
     }
   }
 }

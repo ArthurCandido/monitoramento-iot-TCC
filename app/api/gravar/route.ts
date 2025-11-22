@@ -48,6 +48,17 @@ export async function POST(request: NextRequest) {
     // Salva os dados no PostgreSQL
     const savedData = await dbStore.updateData(dataForStore)
     
+    // Auto-limpeza periódica (a cada 100 registros aprox)
+    if (savedData.id && savedData.id % 100 === 0) {
+      console.log('🧹 Verificando se precisa de limpeza automática...')
+      try {
+        await dbStore.autoCleanup()
+      } catch (cleanupError) {
+        console.log('⚠️ Erro na limpeza automática:', cleanupError)
+        // Não falhar o salvamento por causa da limpeza
+      }
+    }
+    
     return NextResponse.json({ 
       success: true, 
       message: 'Dados salvos no PostgreSQL com sucesso',
