@@ -55,8 +55,8 @@ export async function GET() {
       const dbResult = await sql`
         SELECT 
           COUNT(*) as total,
-          MAX(data_hora) as last_record
-        FROM registros_iot
+          MAX(timestamp) as last_record
+        FROM sensor_data
       `
       
       if (dbResult.length > 0) {
@@ -77,8 +77,9 @@ export async function GET() {
           systemStatus.esp32 = {
             lastDataReceived: last_record,
             secondsSinceLastData: secondsAgo,
-            status: secondsAgo <= 30 ? 'connected' : 
-                   secondsAgo <= 120 ? 'stale' : 'disconnected'
+            status: secondsAgo <= 15 ? 'connected' :    // Conectado se última transmissão ≤ 15s
+                   secondsAgo <= 60 ? 'stale' :         // Dados antigos se ≤ 60s
+                   'disconnected'                       // Desconectado se > 60s
           }
         }
       }

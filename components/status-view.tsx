@@ -233,13 +233,13 @@ export default function StatusView({ connectionStatus }: StatusViewProps) {
                   : 'N/A'
                 }
               </p>
-              {systemStatus?.esp32?.secondsSinceLastData !== null && systemStatus.esp32.secondsSinceLastData <= 30 && (
+              {systemStatus?.esp32?.secondsSinceLastData !== null && systemStatus.esp32.secondsSinceLastData <= 15 && (
                 <div className="flex items-center gap-2">
                   <CheckCircle size={16} className="text-green-500" />
                   <span className="text-sm text-green-600">Dados em tempo real</span>
                 </div>
               )}
-              {systemStatus?.esp32?.secondsSinceLastData !== null && systemStatus.esp32.secondsSinceLastData > 30 && (
+              {systemStatus?.esp32?.secondsSinceLastData !== null && systemStatus.esp32.secondsSinceLastData > 15 && (
                 <div className="flex items-center gap-2">
                   <AlertCircle size={16} className="text-yellow-500" />
                   <span className="text-sm text-yellow-600">Dados desatualizados</span>
