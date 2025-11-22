@@ -32,11 +32,11 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Buscar configurações dinâmicas ou usar padrão
+    // Configurações de alerta: valores fixos + tempo configurável
     const alertConfig = {
-      temperaturaLimite: parseInt(process.env.ALERT_TEMP_LIMITE || '23'),
-      luminosidadeLimite: parseInt(process.env.ALERT_LUZ_LIMITE || '2500'),
-      tempoSemMovimento: parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '20')
+      temperaturaLimite: 23, // FIXO
+      luminosidadeLimite: 2500, // FIXO
+      tempoSemMovimento: parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '20') // CONFIGURÁVEL (padrão 20s)
     }
     
     console.log('🔧 Configurações de alerta em uso:', alertConfig)

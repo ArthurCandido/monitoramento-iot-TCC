@@ -11,16 +11,16 @@ import { AlertTriangle, Settings, Save, RefreshCw, Thermometer, Lightbulb } from
 import { useToast } from "@/hooks/use-toast"
 
 interface AlertConfig {
-  temperaturaLimite: number
-  luminosidadeLimite: number
   tempoSemMovimento: number
 }
 
 const defaultConfig: AlertConfig = {
-  temperaturaLimite: 23, // Se temp < 23°C sem movimento = alerta ar condicionado
-  luminosidadeLimite: 2500, // Se luz > 2500 lux sem movimento = alerta luzes
-  tempoSemMovimento: 300, // segundos sem movimento (5 minutos)
+  tempoSemMovimento: 20, // segundos sem movimento (padrão 20 segundos)
 }
+
+// Valores fixos do sistema
+const TEMPERATURA_LIMITE = 23 // °C - fixo
+const LUMINOSIDADE_LIMITE = 2500 // lux - fixo
 
 export function ConfigView() {
   const [config, setConfig] = useState<AlertConfig>(defaultConfig)
@@ -158,40 +158,19 @@ export function ConfigView() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div>
-                <Label htmlFor="tempLimite" className="text-sm font-medium">
-                  Temperatura limite (°C)
+                <Label className="text-sm font-medium">
+                  Temperatura limite (°C) - Fixo
                 </Label>
-                <Input
-                  id="tempLimite"
-                  type="number"
-                  value={config.temperaturaLimite}
-                  onChange={(e) => setConfig({...config, temperaturaLimite: Number(e.target.value)})}
-                  min="15"
-                  max="30"
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="tempoMovimento" className="text-sm font-medium">
-                  Tempo sem movimento (segundos)
-                </Label>
-                <Input
-                  id="tempoMovimento"
-                  type="number"
-                  value={config.tempoSemMovimento}
-                  onChange={(e) => setConfig({...config, tempoSemMovimento: Number(e.target.value)})}
-                  min="30"
-                  max="1800"
-                  className="mt-1"
-                />
+                <div className="mt-1 p-3 bg-muted/30 rounded-md border">
+                  <span className="text-lg font-semibold">{TEMPERATURA_LIMITE}°C</span>
+                </div>
               </div>
             </div>
 
             <div className="p-3 bg-muted/50 rounded-md">
               <p className="text-sm text-muted-foreground">
                 <AlertTriangle className="h-4 w-4 inline mr-1" />
-                Alerta se temperatura &lt; {config.temperaturaLimite}°C sem movimento por {config.tempoSemMovimento}s
+                Alerta se temperatura &lt; {TEMPERATURA_LIMITE}°C sem movimento por {config.tempoSemMovimento}s
               </p>
             </div>
           </CardContent>
@@ -210,29 +189,56 @@ export function ConfigView() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="luzLimite" className="text-sm font-medium">
-                Luminosidade limite (lux)
+              <Label className="text-sm font-medium">
+                Luminosidade limite (lux) - Fixo
               </Label>
-              <Input
-                id="luzLimite"
-                type="number"
-                value={config.luminosidadeLimite}
-                onChange={(e) => setConfig({...config, luminosidadeLimite: Number(e.target.value)})}
-                min="1000"
-                max="4000"
-                className="mt-1"
-              />
+              <div className="mt-1 p-3 bg-muted/30 rounded-md border">
+                <span className="text-lg font-semibold">{LUMINOSIDADE_LIMITE} lux</span>
+              </div>
             </div>
 
             <div className="p-3 bg-muted/50 rounded-md">
               <p className="text-sm text-muted-foreground">
                 <AlertTriangle className="h-4 w-4 inline mr-1" />
-                Alerta se luminosidade &gt; {config.luminosidadeLimite} lux sem movimento por {config.tempoSemMovimento}s
+                Alerta se luminosidade &gt; {LUMINOSIDADE_LIMITE} lux sem movimento por {config.tempoSemMovimento}s
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Configuração do Tempo */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            ⏱️ Configuração de Tempo
+          </CardTitle>
+          <CardDescription>
+            Defina por quanto tempo sem movimento os alertas devem ser ativados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="tempoMovimento" className="text-sm font-medium">
+                Tempo sem movimento (segundos)
+              </Label>
+              <Input
+                id="tempoMovimento"
+                type="number"
+                value={config.tempoSemMovimento}
+                onChange={(e) => setConfig({...config, tempoSemMovimento: Number(e.target.value)})}
+                min="10"
+                max="300"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Entre 10 segundos e 5 minutos (300s)
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Botões de Ação */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -269,14 +275,20 @@ export function ConfigView() {
           <CardTitle className="text-sm font-medium">Resumo das Configurações</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="space-y-1">
-              <span className="font-medium">❄️ Ar Condicionado:</span>
-              <p className="text-muted-foreground">Se &lt; {config.temperaturaLimite}°C por {config.tempoSemMovimento}s</p>
-            </div>
-            <div className="space-y-1">
-              <span className="font-medium">💡 Luzes:</span>
-              <p className="text-muted-foreground">Se &gt; {config.luminosidadeLimite} lux por {config.tempoSemMovimento}s</p>
+          <div className="grid grid-cols-1 gap-4 text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">❄️ Ar Condicionado:</span>
+                <span className="text-muted-foreground">Temp &lt; {TEMPERATURA_LIMITE}°C por {config.tempoSemMovimento}s</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium">💡 Luzes:</span>
+                <span className="text-muted-foreground">Luz &gt; {LUMINOSIDADE_LIMITE} lux por {config.tempoSemMovimento}s</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium">⏱️ Tempo configurável:</span>
+                <span className="text-primary font-semibold">{config.tempoSemMovimento} segundos</span>
+              </div>
             </div>
           </div>
         </CardContent>

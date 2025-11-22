@@ -2,33 +2,45 @@ import { NextResponse, NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const config = await request.json()
+    const body = await request.json()
+    const { tempoSemMovimento } = body
     
-    // Validar configurações
-    if (!config.temperaturaLimite || !config.luminosidadeLimite || !config.tempoSemMovimento) {
-      return NextResponse.json(
-        { error: 'Configurações incompletas' }, 
-        { status: 400 }
-      )
+    // Validar entrada
+    if (!tempoSemMovimento || typeof tempoSemMovimento !== 'number') {
+      return NextResponse.json({
+        success: false,
+        error: 'Campo tempoSemMovimento é obrigatório e deve ser um número'
+      }, { status: 400 })
     }
     
-    // Salvar no processo para ser usado pelos alertas
-    process.env.ALERT_TEMP_LIMITE = String(config.temperaturaLimite)
-    process.env.ALERT_LUZ_LIMITE = String(config.luminosidadeLimite) 
-    process.env.ALERT_TEMPO_SEM_MOVIMENTO = String(config.tempoSemMovimento)
+    if (tempoSemMovimento < 10 || tempoSemMovimento > 300) {
+      return NextResponse.json({
+        success: false,
+        error: 'tempoSemMovimento deve estar entre 10 e 300 segundos'
+      }, { status: 400 })
+    }
+    
+    // Salvar configuração em process.env (valores de temperatura e luminosidade são fixos)
+    process.env.ALERT_TEMPO_SEM_MOVIMENTO = tempoSemMovimento.toString()
+    // Valores fixos do sistema
+    process.env.ALERT_TEMP_LIMITE = '23'
+    process.env.ALERT_LUZ_LIMITE = '2500'
     process.env.ALERT_CONFIG_UPDATED = String(Date.now())
     
-    console.log('✅ Configurações de alerta atualizadas:', {
-      temperaturaLimite: config.temperaturaLimite,
-      luminosidadeLimite: config.luminosidadeLimite,
-      tempoSemMovimento: config.tempoSemMovimento
+    console.log('💾 Configurações de alerta salvas:', {
+      tempoSemMovimento,
+      temperaturaLimite: 23, // fixo
+      luminosidadeLimite: 2500 // fixo
     })
     
     return NextResponse.json({
       success: true,
       message: 'Configurações salvas com sucesso',
-      config: config,
-      timestamp: new Date().toISOString()
+      config: {
+        tempoSemMovimento: tempoSemMovimento,
+        temperaturaLimite: 23, // sempre fixo
+        luminosidadeLimite: 2500 // sempre fixo
+      }
     })
     
   } catch (error) {
@@ -36,7 +48,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: false,
-      error: 'Erro ao salvar configurações',
+      error: 'Erro interno do servidor',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
@@ -44,24 +56,40 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    // Buscar configurações atuais do processo
-    const config = {
-      temperaturaLimite: parseInt(process.env.ALERT_TEMP_LIMITE || '23'),
-      luminosidadeLimite: parseInt(process.env.ALERT_LUZ_LIMITE || '2500'),
-      tempoSemMovimento: parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '300'),
-      lastUpdated: process.env.ALERT_CONFIG_UPDATED || null
-    }
+    // Obter configuração do process.env com valores padrão
+    const tempoSemMovimento = parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '20')
+    
+    // Valores sempre fixos
+    const temperaturaLimite = 23
+    const luminosidadeLimite = 2500
     
     return NextResponse.json({
       success: true,
-      config: config,
-      message: 'Configurações atuais do backend'
+      config: {
+        tempoSemMovimento,
+        temperaturaLimite, // sempre fixo
+        luminosidadeLimite // sempre fixo
+      },
+      meta: {
+        isConfigurable: {
+          tempoSemMovimento: true,
+          temperaturaLimite: false,
+          luminosidadeLimite: false
+        },
+        defaults: {
+          tempoSemMovimento: 20
+        },
+        lastUpdated: process.env.ALERT_CONFIG_UPDATED || null
+      }
     })
     
   } catch (error) {
+    console.error('❌ Erro ao buscar configurações:', error)
+    
     return NextResponse.json({
       success: false,
-      error: 'Erro ao buscar configurações'
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
