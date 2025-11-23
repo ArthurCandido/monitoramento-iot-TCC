@@ -9,6 +9,7 @@ import AlertsView from '@/components/alerts-view'
 import StatusView from '@/components/status-view'
 import { ConfigView } from '@/components/config-view'
 import { LabSelector } from '@/components/lab-selector'
+import { LabsView } from '@/components/labs-view'
 import { NoDataView } from '@/components/no-data-view'
 import ApiDocsPage from '@/app/docs/page'
 import { useAlertSystem } from '@/hooks/use-alert-system'
@@ -32,7 +33,7 @@ interface HistoryData {
 }
 
 function DashboardContent() {
-  const { selectedLab } = useLab()
+  const { selectedLab, isLoading: isLabLoading } = useLab()
   const [activeSection, setActiveSection] = useState('dashboard')
   const [currentData, setCurrentData] = useState<SensorData | null>(null)
   const [historyData, setHistoryData] = useState<HistoryData[]>([])
@@ -128,6 +129,8 @@ function DashboardContent() {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'labs':
+        return <LabsView />
       case 'sensors':
         return <SensorsView currentData={currentData} isLoading={isLoading} />
       case 'history':
@@ -152,6 +155,18 @@ function DashboardContent() {
           />
         )
     }
+  }
+
+  // Se ainda está carregando o contexto, mostrar loading
+  if (isLabLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    )
   }
 
   // Se não há laboratório selecionado, mostrar seletor

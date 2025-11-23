@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText } from 'lucide-react'
-import { LabSwitcher } from './lab-switcher'
+import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText, Building, MapPin } from 'lucide-react'
+import { useLab } from '@/contexts/lab-context'
+import { Badge } from '@/components/ui/badge'
 
 interface SidebarProps {
   activeSection: string
@@ -12,6 +13,17 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { selectedLab, setSelectedLab } = useLab()
+
+  const handleResetLab = () => {
+    // Limpar localStorage e resetar laboratório
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('selected-lab')
+      localStorage.removeItem('lab-selected')
+    }
+    // Força recarregamento da página para mostrar o LabSelector
+    window.location.reload()
+  }
 
   const sections = [
     {
@@ -19,6 +31,12 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       name: 'Dashboard',
       icon: LayoutDashboard,
       description: 'Visão geral do sistema',
+    },
+    {
+      id: 'labs',
+      name: 'Laboratórios',
+      icon: Activity,
+      description: 'Selecionar laboratório',
     },
     {
       id: 'sensors',
@@ -83,7 +101,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border transition-transform duration-300 ${
+        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border transition-transform duration-300 overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -100,8 +118,33 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
           </div>
         </div>
 
-        {/* Lab Switcher */}
-        <LabSwitcher />
+        {/* Current Lab Indicator */}
+        {selectedLab && (
+          <div className="px-4 py-2 border-b border-border bg-accent/10">
+            <div className="flex items-center gap-2">
+              <Building className="h-3 w-3 text-muted-foreground" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{selectedLab.nome}</p>
+                <p className="text-xs text-muted-foreground truncate">{selectedLab.descricao}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <Badge 
+                  variant={selectedLab.ativo ? "default" : "secondary"} 
+                  className={`text-xs h-5 ${selectedLab.ativo ? "bg-green-500" : ""}`}
+                >
+                  {selectedLab.ativo ? "ON" : "OFF"}
+                </Badge>
+                <button
+                  onClick={handleResetLab}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1"
+                  title="Trocar laboratório"
+                >
+                  ⟲
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">

@@ -14,6 +14,7 @@ interface LabContextType {
   selectedLab: Laboratory | null
   setSelectedLab: (lab: Laboratory) => void
   isLabActive: (labId: string) => boolean
+  isLoading: boolean
 }
 
 const LABORATORIES: Laboratory[] = [
@@ -31,12 +32,14 @@ const LabContext = createContext<LabContextType | undefined>(undefined)
 
 export function LabProvider({ children }: { children: React.ReactNode }) {
   const [selectedLab, setSelectedLabState] = useState<Laboratory | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const setSelectedLab = (lab: Laboratory) => {
     setSelectedLabState(lab)
     // Salvar no localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('selected-lab', lab.id)
+      localStorage.setItem('lab-selected', 'true') // Marcar que já selecionou
     }
   }
 
@@ -49,17 +52,17 @@ export function LabProvider({ children }: { children: React.ReactNode }) {
     // Verificar se estamos no lado cliente
     if (typeof window !== 'undefined') {
       const savedLabId = localStorage.getItem('selected-lab')
-      if (savedLabId) {
+      const hasSelected = localStorage.getItem('lab-selected')
+      
+      // Só auto-selecionar se já foi selecionado anteriormente
+      if (savedLabId && hasSelected === 'true') {
         const lab = LABORATORIES.find(l => l.id === savedLabId)
         if (lab) {
           setSelectedLabState(lab)
-          return
         }
       }
       
-      // Se não há laboratório salvo, usar E105 como padrão
-      const activeLab = LABORATORIES.find(lab => lab.ativo) || LABORATORIES[5] // E105
-      setSelectedLabState(activeLab)
+      setIsLoading(false)
     }
   }, [])
 
@@ -68,7 +71,8 @@ export function LabProvider({ children }: { children: React.ReactNode }) {
       laboratories: LABORATORIES,
       selectedLab,
       setSelectedLab,
-      isLabActive
+      isLabActive,
+      isLoading
     }}>
       {children}
     </LabContext.Provider>
