@@ -8,8 +8,11 @@ import HistoryView from '@/components/history-view'
 import AlertsView from '@/components/alerts-view'
 import StatusView from '@/components/status-view'
 import { ConfigView } from '@/components/config-view'
+import { LabSelector } from '@/components/lab-selector'
+import { NoDataView } from '@/components/no-data-view'
 import ApiDocsPage from '@/app/docs/page'
 import { useAlertSystem } from '@/hooks/use-alert-system'
+import { LabProvider, useLab } from '@/contexts/lab-context'
 
 interface SensorData {
   temperatura: number
@@ -28,7 +31,8 @@ interface HistoryData {
   data_hora: string
 }
 
-export default function Dashboard() {
+function DashboardContent() {
+  const { selectedLab } = useLab()
   const [activeSection, setActiveSection] = useState('dashboard')
   const [currentData, setCurrentData] = useState<SensorData | null>(null)
   const [historyData, setHistoryData] = useState<HistoryData[]>([])
@@ -38,6 +42,21 @@ export default function Dashboard() {
   
   // Sistema de alertas com lógica de tempo correto
   const { analyzeData, alerts, alertStats, clearActiveAlerts } = useAlertSystem()
+
+  // Se não há laboratório selecionado, mostrar seletor
+  if (!selectedLab) {
+    return <LabSelector />
+  }
+
+  // Se laboratório não está ativo, mostrar tela sem dados
+  if (!selectedLab.ativo) {
+    return (
+      <div className="flex h-screen bg-background">
+        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        <NoDataView labName={selectedLab.nome} labDescription={selectedLab.descricao || ''} />
+      </div>
+    )
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,5 +176,13 @@ export default function Dashboard() {
         {renderContent()}
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <LabProvider>
+      <DashboardContent />
+    </LabProvider>
   )
 }

@@ -114,7 +114,6 @@ export function useAlertSystem() {
     
     // Atualizar último movimento detectado
     if (data.movimento === 'Detectado') {
-      console.log('🚶 Movimento detectado - resetando timer e limpando alertas')
       const newTime = now
       setLastMovementTime(newTime)
       lastMovementTimeRef.current = newTime
@@ -125,14 +124,6 @@ export function useAlertSystem() {
     
     // Calcular tempo sem movimento em segundos usando a ref
     const tempoSemMovimentoSegundos = (now - lastMovementTimeRef.current) / 1000
-    
-    console.log('⏰ Timer sem movimento:', {
-      tempoAtual: Math.round(tempoSemMovimentoSegundos),
-      tempoLimite: config.tempoSemMovimento,
-      precisaGerar: tempoSemMovimentoSegundos >= config.tempoSemMovimento,
-      lastMovementRef: new Date(lastMovementTimeRef.current).toLocaleTimeString(),
-      agora: new Date(now).toLocaleTimeString()
-    })
     
     // Só gerar alertas se passou o tempo configurado sem movimento
     if (tempoSemMovimentoSegundos >= config.tempoSemMovimento) {

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText } from 'lucide-react'
+import { LabSwitcher } from './lab-switcher'
 
 interface SidebarProps {
   activeSection: string
@@ -98,6 +99,9 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
             </div>
           </div>
         </div>
+
+        {/* Lab Switcher */}
+        <LabSwitcher />
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
