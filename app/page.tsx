@@ -40,25 +40,13 @@ function DashboardContent() {
   const [connectionStatus, setConnectionStatus] = useState('connecting')
   const [events, setEvents] = useState<Array<{ id: number; type: string; message: string; timestamp: string }>>([])
   
-  // Sistema de alertas com lógica de tempo correto
+  // Sistema de alertas com lógica de tempo correto - SEMPRE chamado
   const { analyzeData, alerts, alertStats, clearActiveAlerts } = useAlertSystem()
 
-  // Se não há laboratório selecionado, mostrar seletor
-  if (!selectedLab) {
-    return <LabSelector />
-  }
-
-  // Se laboratório não está ativo, mostrar tela sem dados
-  if (!selectedLab.ativo) {
-    return (
-      <div className="flex h-screen bg-background">
-        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-        <NoDataView labName={selectedLab.nome} labDescription={selectedLab.descricao || ''} />
-      </div>
-    )
-  }
-
   useEffect(() => {
+    // Só buscar dados se o laboratório está ativo
+    if (!selectedLab?.ativo) return
+    
     const fetchData = async () => {
       try {
         // Adicionar timestamp para evitar cache do browser E do Vercel Edge
@@ -136,7 +124,7 @@ function DashboardContent() {
     fetchData()
     const interval = setInterval(fetchData, 3000)
     return () => clearInterval(interval)
-  }, [])
+  }, [selectedLab, analyzeData, alerts])
 
   const renderContent = () => {
     switch (activeSection) {
@@ -164,6 +152,21 @@ function DashboardContent() {
           />
         )
     }
+  }
+
+  // Se não há laboratório selecionado, mostrar seletor
+  if (!selectedLab) {
+    return <LabSelector />
+  }
+
+  // Se laboratório não está ativo, mostrar tela sem dados
+  if (!selectedLab.ativo) {
+    return (
+      <div className="flex h-screen bg-background">
+        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        <NoDataView labName={selectedLab.nome} labDescription={selectedLab.descricao || ''} />
+      </div>
+    )
   }
 
   return (

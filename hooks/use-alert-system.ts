@@ -32,16 +32,16 @@ const defaultConfig: AlertConfig = {
 }
 
 export function useAlertSystem() {
-  const [config, setConfig] = useState<AlertConfig>(defaultConfig)
+  const [config] = useState<AlertConfig>(defaultConfig)
   const [alerts, setAlerts] = useState<Alert[]>([])
-  const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now())
+  const [lastMovementTime, setLastMovementTime] = useState<number>(() => Date.now())
   const { toast } = useToast()
 
   // Configurações fixas - apenas via código
   // Para alterar: modifique os valores em defaultConfig acima
 
   // Usar ref para manter lastMovementTime atualizado nas dependências
-  const lastMovementTimeRef = useRef(lastMovementTime)
+  const lastMovementTimeRef = useRef<number>(Date.now())
   
   useEffect(() => {
     lastMovementTimeRef.current = lastMovementTime

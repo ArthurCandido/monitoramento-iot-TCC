@@ -32,30 +32,34 @@ const LabContext = createContext<LabContextType | undefined>(undefined)
 export function LabProvider({ children }: { children: React.ReactNode }) {
   const [selectedLab, setSelectedLabState] = useState<Laboratory | null>(null)
 
-  // Inicializar com E105 (laboratório ativo)
-  useEffect(() => {
-    const activeLab = LABORATORIES.find(lab => lab.ativo) || LABORATORIES[5] // E105
-    setSelectedLabState(activeLab)
-  }, [])
-
   const setSelectedLab = (lab: Laboratory) => {
     setSelectedLabState(lab)
     // Salvar no localStorage
-    localStorage.setItem('selected-lab', lab.id)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selected-lab', lab.id)
+    }
   }
 
   const isLabActive = (labId: string) => {
     return LABORATORIES.find(lab => lab.id === labId)?.ativo || false
   }
 
-  // Carregar do localStorage na inicialização
+  // Inicialização única combinada
   useEffect(() => {
-    const savedLabId = localStorage.getItem('selected-lab')
-    if (savedLabId) {
-      const lab = LABORATORIES.find(l => l.id === savedLabId)
-      if (lab) {
-        setSelectedLabState(lab)
+    // Verificar se estamos no lado cliente
+    if (typeof window !== 'undefined') {
+      const savedLabId = localStorage.getItem('selected-lab')
+      if (savedLabId) {
+        const lab = LABORATORIES.find(l => l.id === savedLabId)
+        if (lab) {
+          setSelectedLabState(lab)
+          return
+        }
       }
+      
+      // Se não há laboratório salvo, usar E105 como padrão
+      const activeLab = LABORATORIES.find(lab => lab.ativo) || LABORATORIES[5] // E105
+      setSelectedLabState(activeLab)
     }
   }, [])
 
