@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useToast } from './use-toast'
 
 interface SensorData {
@@ -39,6 +39,13 @@ export function useAlertSystem() {
 
   // Configurações fixas - apenas via código
   // Para alterar: modifique os valores em defaultConfig acima
+
+  // Usar ref para manter lastMovementTime atualizado nas dependências
+  const lastMovementTimeRef = useRef(lastMovementTime)
+  
+  useEffect(() => {
+    lastMovementTimeRef.current = lastMovementTime
+  }, [lastMovementTime])
 
   // Adicionar novo alerta
   const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp'>) => {
@@ -108,19 +115,23 @@ export function useAlertSystem() {
     // Atualizar último movimento detectado
     if (data.movimento === 'Detectado') {
       console.log('🚶 Movimento detectado - resetando timer e limpando alertas')
-      setLastMovementTime(now)
+      const newTime = now
+      setLastMovementTime(newTime)
+      lastMovementTimeRef.current = newTime
       // Limpar todos os alertas ativos quando movimento é detectado
       clearActiveAlerts()
       return // Se há movimento, não gerar alertas de economia
     }
     
-    // Calcular tempo sem movimento em segundos
-    const tempoSemMovimentoSegundos = (now - lastMovementTime) / 1000
+    // Calcular tempo sem movimento em segundos usando a ref
+    const tempoSemMovimentoSegundos = (now - lastMovementTimeRef.current) / 1000
     
     console.log('⏰ Timer sem movimento:', {
       tempoAtual: Math.round(tempoSemMovimentoSegundos),
       tempoLimite: config.tempoSemMovimento,
-      precisaGerar: tempoSemMovimentoSegundos >= config.tempoSemMovimento
+      precisaGerar: tempoSemMovimentoSegundos >= config.tempoSemMovimento,
+      lastMovementRef: new Date(lastMovementTimeRef.current).toLocaleTimeString(),
+      agora: new Date(now).toLocaleTimeString()
     })
     
     // Só gerar alertas se passou o tempo configurado sem movimento
@@ -145,7 +156,7 @@ export function useAlertSystem() {
       }
     }
     
-  }, [config, lastMovementTime, addAlert, clearActiveAlerts])
+  }, [config, addAlert, clearActiveAlerts])
 
   // Limpar alertas antigos
   const clearOldAlerts = useCallback(() => {
@@ -183,7 +194,7 @@ export function useAlertSystem() {
     config,
     alerts,
     alertStats,
-    lastMovementTime,
+    lastMovementTime: lastMovementTimeRef.current,
     analyzeData,
     removeAlert,
     clearAllAlerts,
