@@ -49,13 +49,13 @@ export function useAlertSystem() {
     }
     
     setAlerts(prev => {
-      // Evitar alertas duplicados nos últimos 5 minutos
-      const isDuplicate = prev.some(existingAlert => 
-        existingAlert.tipo === newAlert.tipo &&
-        Date.now() - existingAlert.timestamp < 5 * 60 * 1000
+      // Verificar se já existe um alerta ativo do mesmo tipo (não verificar por tempo)
+      const hasActiveAlert = prev.some(existingAlert => 
+        existingAlert.tipo === newAlert.tipo
       )
       
-      if (!isDuplicate) {
+      // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
+      if (!hasActiveAlert) {
         // Manter apenas os últimos 20 alertas
         const updatedAlerts = [newAlert, ...prev].slice(0, 20)
         
@@ -107,6 +107,7 @@ export function useAlertSystem() {
     
     // Atualizar último movimento detectado
     if (data.movimento === 'Detectado') {
+      console.log('🚶 Movimento detectado - resetando timer e limpando alertas')
       setLastMovementTime(now)
       // Limpar todos os alertas ativos quando movimento é detectado
       clearActiveAlerts()
@@ -115,6 +116,12 @@ export function useAlertSystem() {
     
     // Calcular tempo sem movimento em segundos
     const tempoSemMovimentoSegundos = (now - lastMovementTime) / 1000
+    
+    console.log('⏰ Timer sem movimento:', {
+      tempoAtual: Math.round(tempoSemMovimentoSegundos),
+      tempoLimite: config.tempoSemMovimento,
+      precisaGerar: tempoSemMovimentoSegundos >= config.tempoSemMovimento
+    })
     
     // Só gerar alertas se passou o tempo configurado sem movimento
     if (tempoSemMovimentoSegundos >= config.tempoSemMovimento) {
