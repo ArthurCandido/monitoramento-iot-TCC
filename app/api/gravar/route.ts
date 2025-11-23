@@ -32,34 +32,16 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Configurações de alerta: valores fixos + tempo configurável
-    const alertConfig = {
-      temperaturaLimite: 23, // FIXO
-      luminosidadeLimite: 2500, // FIXO
-      tempoSemMovimento: parseInt(process.env.ALERT_TEMPO_SEM_MOVIMENTO || '20') // CONFIGURÁVEL (padrão 20s)
-    }
-    
-    console.log('🔧 Configurações de alerta em uso:', alertConfig)
-    
+    // Alertas são processados apenas no frontend com lógica de tempo
+    // Backend apenas armazena dados sem gerar alertas instantâneos
     let alertaAr = "OK"
     let alertaLuz = "OK"
     
-    // Alerta de Ar Condicionado: temperatura baixa sem movimento
-    if (body.temp < alertConfig.temperaturaLimite && body.mov === "Nenhum") {
-      alertaAr = `❄️ Ar condicionado pode estar ligado sem ninguém na sala (${body.temp}°C)`
-    }
-    
-    // Alerta de Luzes: alta luminosidade sem movimento  
-    if (body.luz > alertConfig.luminosidadeLimite && body.mov === "Nenhum") {
-      alertaLuz = `💡 Luz pode ter ficado ligada sem ninguém na sala (${body.luz} lux)`
-    }
-    
-    console.log('🔍 Avaliação de alertas:', {
+    console.log('📊 Dados dos sensores recebidos:', {
       temperatura: body.temp,
       movimento: body.mov,
       luminosidade: body.luz,
-      alertaAr,
-      alertaLuz
+      timestamp: body.timestamp
     })
     
     // Use dados diretos do ESP32 com alertas processados

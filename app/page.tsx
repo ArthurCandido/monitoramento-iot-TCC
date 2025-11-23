@@ -35,6 +35,9 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [connectionStatus, setConnectionStatus] = useState('connecting')
   const [events, setEvents] = useState<Array<{ id: number; type: string; message: string; timestamp: string }>>([])
+  
+  // Sistema de alertas com lógica de tempo correto
+  const { analyzeData, alerts } = useAlertSystem()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,14 +76,34 @@ export default function Dashboard() {
           setConnectionStatus('connected')
           setIsLoading(false)
 
-          if (dataAtual.alerta_ar !== 'OK' || dataAtual.alerta_luz !== 'OK') {
+          // Analisar dados com o sistema de alertas (com lógica de tempo)
+          if (dataAtual) {
+            analyzeData({
+              temperatura: dataAtual.temperatura,
+              umidade: dataAtual.umidade,
+              luminosidade: dataAtual.luminosidade,
+              movimento: dataAtual.movimento,
+              timestamp: Date.now()
+            })
+          }
+
+          // Usar alertas do sistema frontend para eventos
+          if (alerts.length > 0) {
+            const latestAlert = alerts[0]
             const newEvent = {
-              id: Date.now(),
-              type: dataAtual.alerta_ar !== 'OK' ? 'warning' : 'warning',
-              message: dataAtual.alerta_ar !== 'OK' ? dataAtual.alerta_ar : dataAtual.alerta_luz,
-              timestamp: new Date().toLocaleTimeString('pt-BR'),
+              id: latestAlert.timestamp,
+              type: latestAlert.nivel,
+              message: latestAlert.mensagem,
+              timestamp: new Date(latestAlert.timestamp).toLocaleTimeString('pt-BR'),
             }
-            setEvents((prev) => [newEvent, ...prev.slice(0, 9)])
+            setEvents((prev) => {
+              // Evitar duplicatas
+              const exists = prev.find(e => e.id === newEvent.id)
+              if (!exists) {
+                return [newEvent, ...prev.slice(0, 9)]
+              }
+              return prev
+            })
           }
         } else {
           setConnectionStatus('error')
@@ -118,6 +141,7 @@ export default function Dashboard() {
             isLoading={isLoading}
             connectionStatus={connectionStatus}
             events={events}
+            alerts={alerts}
           />
         )
     }

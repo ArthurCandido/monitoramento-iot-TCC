@@ -25,12 +25,21 @@ interface HistoryData {
   data_hora: string
 }
 
+interface Alert {
+  id: string
+  tipo: 'ar-condicionado' | 'luzes'
+  mensagem: string
+  nivel: 'warning' | 'error'
+  timestamp: number
+}
+
 interface DashboardViewProps {
   currentData: SensorData | null
   historyData: HistoryData[]
   isLoading: boolean
   connectionStatus: string
   events: Array<{ id: number; type: string; message: string; timestamp: string }>
+  alerts: Alert[]
 }
 
 export default function DashboardView({
@@ -39,7 +48,11 @@ export default function DashboardView({
   isLoading,
   connectionStatus,
   events,
+  alerts,
 }: DashboardViewProps) {
+  // Encontrar alertas atuais por tipo
+  const alertaAr = alerts.find(a => a.tipo === 'ar-condicionado')
+  const alertaLuz = alerts.find(a => a.tipo === 'luzes')
   return (
     <main className="flex-1 overflow-y-auto">
       <DashboardHeader />
@@ -50,21 +63,19 @@ export default function DashboardView({
           <ConnectionStatus status={connectionStatus} />
         </div>
 
-        {/* Alert Boxes */}
-        {currentData && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <AlertBox
-              title="Ar Condicionado"
-              message={currentData.alerta_ar}
-              isAlert={currentData.alerta_ar !== 'OK'}
-            />
-            <AlertBox
-              title="Iluminação"
-              message={currentData.alerta_luz}
-              isAlert={currentData.alerta_luz !== 'OK'}
-            />
-          </div>
-        )}
+        {/* Alert Boxes - usando sistema frontend de alertas com tempo */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <AlertBox
+            title="Ar Condicionado"
+            message={alertaAr ? alertaAr.mensagem : 'OK'}
+            isAlert={!!alertaAr}
+          />
+          <AlertBox
+            title="Iluminação"
+            message={alertaLuz ? alertaLuz.mensagem : 'OK'}
+            isAlert={!!alertaLuz}
+          />
+        </div>
 
         {/* Sensor Cards */}
         <SensorCards data={currentData} isLoading={isLoading} />

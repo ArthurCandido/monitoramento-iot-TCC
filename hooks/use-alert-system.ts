@@ -28,7 +28,7 @@ interface Alert {
 const defaultConfig: AlertConfig = {
   temperaturaLimite: 23,
   luminosidadeLimite: 2500,
-  tempoSemMovimento: 300, // segundos (5 minutos)
+  tempoSemMovimento: 20, // segundos (padrão 20 segundos)
 }
 
 export function useAlertSystem() {
@@ -37,16 +37,42 @@ export function useAlertSystem() {
   const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now())
   const { toast } = useToast()
 
-  // Carregar configurações do localStorage
+  // Carregar configurações da API e localStorage
   useEffect(() => {
-    const savedConfig = localStorage.getItem('iot-alert-config')
-    if (savedConfig) {
+    const loadConfig = async () => {
       try {
-        setConfig(JSON.parse(savedConfig))
+        // Tentar carregar da API primeiro
+        const response = await fetch('/api/config-alertas')
+        if (response.ok) {
+          const apiConfig = await response.json()
+          if (apiConfig.success) {
+            setConfig(apiConfig.config)
+            // Salvar no localStorage também
+            localStorage.setItem('iot-alert-config', JSON.stringify(apiConfig.config))
+            return
+          }
+        }
+        
+        // Se API falhar, carregar do localStorage
+        const savedConfig = localStorage.getItem('iot-alert-config')
+        if (savedConfig) {
+          setConfig(JSON.parse(savedConfig))
+        }
       } catch (error) {
         console.error('Erro ao carregar configurações:', error)
+        // Usar configuração do localStorage como fallback
+        const savedConfig = localStorage.getItem('iot-alert-config')
+        if (savedConfig) {
+          try {
+            setConfig(JSON.parse(savedConfig))
+          } catch (parseError) {
+            console.error('Erro ao parsear configurações do localStorage:', parseError)
+          }
+        }
       }
     }
+    
+    loadConfig()
   }, [])
 
   // Adicionar novo alerta
