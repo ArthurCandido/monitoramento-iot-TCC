@@ -1,264 +1,119 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, Settings, Save, RefreshCw, Thermometer, Lightbulb } from 'lucide-react'
-import { useToast } from "@/hooks/use-toast"
+import { Label } from "@/components/ui/label"
+import { Settings, Thermometer, Lightbulb, Clock } from 'lucide-react'
 
-interface AlertConfig {
-  tempoSemMovimento: number
+// Configurações fixas do sistema (alteráveis apenas via código)
+const CONFIG_SISTEMA = {
+  temperaturaLimite: 23, // °C
+  luminosidadeLimite: 2500, // lux  
+  tempoSemMovimento: 20 // segundos
 }
-
-const defaultConfig: AlertConfig = {
-  tempoSemMovimento: 20, // segundos sem movimento (padrão 20 segundos)
-}
-
-// Valores fixos do sistema
-const TEMPERATURA_LIMITE = 23 // °C - fixo
-const LUMINOSIDADE_LIMITE = 2500 // lux - fixo
 
 export function ConfigView() {
-  const [config, setConfig] = useState<AlertConfig>(defaultConfig)
-  const [isSaving, setIsSaving] = useState(false)
-  const { toast } = useToast()
-
-  // Carregar configurações
-  useEffect(() => {
-    const carregarConfiguracoes = async () => {
-      try {
-        // Carregar do localStorage primeiro
-        const savedConfig = localStorage.getItem('iot-alert-config')
-        if (savedConfig) {
-          setConfig(JSON.parse(savedConfig))
-        }
-        
-        // Carregar do backend para sincronizar
-        const response = await fetch('/api/config-alertas')
-        if (response.ok) {
-          const result = await response.json()
-          if (result.success && result.config) {
-            setConfig(result.config)
-            // Atualizar localStorage com dados do backend
-            localStorage.setItem('iot-alert-config', JSON.stringify(result.config))
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar configurações:', error)
-      }
-    }
-    
-    carregarConfiguracoes()
-  }, [])
-
-  // Salvar configurações
-  const salvarConfiguracoes = async () => {
-    setIsSaving(true)
-    try {
-      // Salvar no localStorage (frontend)
-      localStorage.setItem('iot-alert-config', JSON.stringify(config))
-      
-      // Enviar para o backend
-      const response = await fetch('/api/config-alertas', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config)
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        toast({
-          title: "✅ Configurações salvas!",
-          description: "Alertas atualizados no sistema.",
-        })
-      } else {
-        throw new Error(result.error || 'Erro desconhecido')
-      }
-      
-    } catch (error) {
-      console.error('Erro ao salvar configurações:', error)
-      toast({
-        title: "❌ Erro ao salvar",
-        description: "Não foi possível salvar as configurações no backend.",
-        variant: "destructive"
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  // Resetar configurações
-  const resetarConfiguracoes = () => {
-    setConfig(defaultConfig)
-    toast({
-      title: "🔄 Configurações resetadas",
-      description: "Valores padrão restaurados.",
-    })
-  }
-
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Settings className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Configurações de Alertas</h1>
-          </div>
-          <Badge variant="default" className="w-fit">
-            Economia de Energia
-          </Badge>
+    <main className="flex-1 overflow-y-auto">
+      <div className="max-w-7xl mx-auto px-4 py-8 md:px-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Configurações do Sistema</h1>
+          <p className="text-muted-foreground">Visualização das configurações ativas do sistema de alertas</p>
         </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Alertas de Ar Condicionado */}
-        <Card className="h-fit">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Thermometer className="h-5 w-5 text-blue-500" />
-              Alerta de Ar Condicionado
-            </CardTitle>
-            <CardDescription>
-              Detecta desperdício de energia com ar condicionado
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">
-                  Temperatura limite (°C) - Fixo
-                </Label>
-                <div className="mt-1 p-3 bg-muted/30 rounded-md border">
-                  <span className="text-lg font-semibold">{TEMPERATURA_LIMITE}°C</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Configurações de Alerta */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                <CardTitle>Configurações de Alerta</CardTitle>
+              </div>
+              <CardDescription>
+                Parâmetros do sistema de detecção de economia de energia
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Ar Condicionado */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Thermometer className="h-4 w-4 text-blue-500" />
+                  <Label className="text-sm font-medium">Limite de Temperatura</Label>
+                  <Badge variant="secondary">{CONFIG_SISTEMA.temperaturaLimite}°C</Badge>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  Alerta quando temperatura for menor que {CONFIG_SISTEMA.temperaturaLimite}°C sem movimento por {CONFIG_SISTEMA.tempoSemMovimento}s
+                </p>
               </div>
-            </div>
 
-            <div className="p-3 bg-muted/50 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                <AlertTriangle className="h-4 w-4 inline mr-1" />
-                Alerta se temperatura &lt; {TEMPERATURA_LIMITE}°C sem movimento por {config.tempoSemMovimento}s
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Alertas de Luzes */}
-        <Card className="h-fit">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lightbulb className="h-5 w-5 text-yellow-500" />
-              Alerta de Luzes Acesas
-            </CardTitle>
-            <CardDescription>
-              Detecta luzes acesas desnecessariamente
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">
-                Luminosidade limite (lux) - Fixo
-              </Label>
-              <div className="mt-1 p-3 bg-muted/30 rounded-md border">
-                <span className="text-lg font-semibold">{LUMINOSIDADE_LIMITE} lux</span>
+              {/* Luminosidade */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  <Label className="text-sm font-medium">Limite de Luminosidade</Label>
+                  <Badge variant="secondary">{CONFIG_SISTEMA.luminosidadeLimite} lux</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Alerta quando luminosidade for maior que {CONFIG_SISTEMA.luminosidadeLimite} lux sem movimento por {CONFIG_SISTEMA.tempoSemMovimento}s
+                </p>
               </div>
-            </div>
 
-            <div className="p-3 bg-muted/50 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                <AlertTriangle className="h-4 w-4 inline mr-1" />
-                Alerta se luminosidade &gt; {LUMINOSIDADE_LIMITE} lux sem movimento por {config.tempoSemMovimento}s
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              {/* Tempo sem movimento */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-purple-500" />
+                  <Label className="text-sm font-medium">Tempo sem Movimento</Label>
+                  <Badge variant="secondary">{CONFIG_SISTEMA.tempoSemMovimento}s</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tempo necessário sem movimento detectado antes de gerar alertas
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Resumo dos Alertas */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Resumo dos Alertas</CardTitle>
+              <CardDescription>
+                Condições que acionam os alertas de economia de energia
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Alerta Ar Condicionado */}
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Thermometer className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300">Ar Condicionado</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Temperatura &lt; {CONFIG_SISTEMA.temperaturaLimite}°C por {CONFIG_SISTEMA.tempoSemMovimento}s sem movimento
+                </p>
+              </div>
+
+              {/* Alerta Luminosidade */}
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  <h4 className="font-semibold text-yellow-700 dark:text-yellow-300">Luzes</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Luminosidade &gt; {CONFIG_SISTEMA.luminosidadeLimite} lux por {CONFIG_SISTEMA.tempoSemMovimento}s sem movimento
+                </p>
+              </div>
+
+              {/* Nota sobre configuração */}
+              <div className="mt-6 p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Nota:</strong> As configurações são definidas no código fonte e não podem ser alteradas pela interface. 
+                  Para modificar os valores, edite o arquivo <code className="bg-gray-200 dark:bg-gray-800 px-1 rounded">use-alert-system.ts</code>.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      {/* Configuração do Tempo */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            ⏱️ Configuração de Tempo
-          </CardTitle>
-          <CardDescription>
-            Defina por quanto tempo sem movimento os alertas devem ser ativados
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="tempoMovimento" className="text-sm font-medium">
-                Tempo sem movimento (segundos)
-              </Label>
-              <Input
-                id="tempoMovimento"
-                type="number"
-                value={config.tempoSemMovimento}
-                onChange={(e) => setConfig({...config, tempoSemMovimento: Number(e.target.value)})}
-                min="10"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Mínimo de 10 segundos
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Botões de Ação */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button 
-          onClick={salvarConfiguracoes} 
-          disabled={isSaving}
-          className="flex-1 sm:flex-none sm:min-w-[200px]"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? "Salvando..." : "Salvar Configurações"}
-        </Button>
-        
-        <Button 
-          onClick={resetarConfiguracoes}
-          variant="outline"
-          className="flex-1 sm:flex-none sm:min-w-[150px]"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Restaurar Padrão
-        </Button>
-      </div>
-
-      {/* Preview das Configurações */}
-      <Card className="bg-muted/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Resumo das Configurações</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 text-sm">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">❄️ Ar Condicionado:</span>
-                <span className="text-muted-foreground">Temp &lt; {TEMPERATURA_LIMITE}°C por {config.tempoSemMovimento}s</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">💡 Luzes:</span>
-                <span className="text-muted-foreground">Luz &gt; {LUMINOSIDADE_LIMITE} lux por {config.tempoSemMovimento}s</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">⏱️ Tempo configurável:</span>
-                <span className="text-primary font-semibold">{config.tempoSemMovimento} segundos</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-    </div>
+    </main>
   )
 }

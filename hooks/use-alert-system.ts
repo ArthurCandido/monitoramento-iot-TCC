@@ -37,43 +37,8 @@ export function useAlertSystem() {
   const [lastMovementTime, setLastMovementTime] = useState<number>(Date.now())
   const { toast } = useToast()
 
-  // Carregar configurações da API e localStorage
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        // Tentar carregar da API primeiro
-        const response = await fetch('/api/config-alertas')
-        if (response.ok) {
-          const apiConfig = await response.json()
-          if (apiConfig.success) {
-            setConfig(apiConfig.config)
-            // Salvar no localStorage também
-            localStorage.setItem('iot-alert-config', JSON.stringify(apiConfig.config))
-            return
-          }
-        }
-        
-        // Se API falhar, carregar do localStorage
-        const savedConfig = localStorage.getItem('iot-alert-config')
-        if (savedConfig) {
-          setConfig(JSON.parse(savedConfig))
-        }
-      } catch (error) {
-        console.error('Erro ao carregar configurações:', error)
-        // Usar configuração do localStorage como fallback
-        const savedConfig = localStorage.getItem('iot-alert-config')
-        if (savedConfig) {
-          try {
-            setConfig(JSON.parse(savedConfig))
-          } catch (parseError) {
-            console.error('Erro ao parsear configurações do localStorage:', parseError)
-          }
-        }
-      }
-    }
-    
-    loadConfig()
-  }, [])
+  // Configurações fixas - apenas via código
+  // Para alterar: modifique os valores em defaultConfig acima
 
   // Adicionar novo alerta
   const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp'>) => {
@@ -123,6 +88,19 @@ export function useAlertSystem() {
     return `${prefixes[nivel]} - ${tipos[tipo]}`
   }
 
+  // Limpar alertas ativos por tipo
+  const clearActiveAlerts = useCallback((tipoAlerta?: 'ar-condicionado' | 'luzes') => {
+    setAlerts(prev => {
+      if (tipoAlerta) {
+        // Limpar apenas alertas do tipo específico
+        return prev.filter(alert => alert.tipo !== tipoAlerta)
+      } else {
+        // Limpar todos os alertas ativos
+        return []
+      }
+    })
+  }, [])
+
   // Analisar dados dos sensores e gerar alertas
   const analyzeData = useCallback((data: SensorData) => {
     const now = Date.now()
@@ -130,6 +108,8 @@ export function useAlertSystem() {
     // Atualizar último movimento detectado
     if (data.movimento === 'Detectado') {
       setLastMovementTime(now)
+      // Limpar todos os alertas ativos quando movimento é detectado
+      clearActiveAlerts()
       return // Se há movimento, não gerar alertas de economia
     }
     
@@ -158,7 +138,7 @@ export function useAlertSystem() {
       }
     }
     
-  }, [config, lastMovementTime, addAlert])
+  }, [config, lastMovementTime, addAlert, clearActiveAlerts])
 
   // Limpar alertas antigos
   const clearOldAlerts = useCallback(() => {
@@ -176,11 +156,7 @@ export function useAlertSystem() {
     setAlerts([])
   }, [])
 
-  // Salvar configurações
-  const updateConfig = useCallback((newConfig: AlertConfig) => {
-    setConfig(newConfig)
-    localStorage.setItem('iot-alert-config', JSON.stringify(newConfig))
-  }, [])
+
 
   // Estatísticas dos alertas
   const alertStats = {
@@ -202,9 +178,9 @@ export function useAlertSystem() {
     alertStats,
     lastMovementTime,
     analyzeData,
-    updateConfig,
     removeAlert,
     clearAllAlerts,
+    clearActiveAlerts,
     addAlert
   }
 }

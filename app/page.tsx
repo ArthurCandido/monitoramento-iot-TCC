@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [events, setEvents] = useState<Array<{ id: number; type: string; message: string; timestamp: string }>>([])
   
   // Sistema de alertas com lógica de tempo correto
-  const { analyzeData, alerts } = useAlertSystem()
+  const { analyzeData, alerts, alertStats, clearActiveAlerts } = useAlertSystem()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,7 +126,7 @@ export default function Dashboard() {
       case 'history':
         return <HistoryView historyData={historyData} />
       case 'alerts':
-        return <AlertsView currentData={currentData} />
+        return <AlertsView alerts={alerts} alertStats={alertStats} clearActiveAlerts={clearActiveAlerts} />
       case 'status':
         return <StatusView connectionStatus={connectionStatus} />
       case 'config':

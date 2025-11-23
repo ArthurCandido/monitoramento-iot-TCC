@@ -1,36 +1,43 @@
 'use client'
 
-import { AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-interface AlertsViewProps {
-  currentData: {
-    alerta_ar: string
-    alerta_luz: string
-    data_hora: string
-  } | null
+interface Alert {
+  id: string
+  tipo: 'ar-condicionado' | 'luzes'
+  mensagem: string
+  nivel: 'warning' | 'error'
+  timestamp: number
 }
 
-export default function AlertsView({ currentData }: AlertsViewProps) {
-  const alerts = currentData
-    ? [
-        {
-          id: 1,
-          type: currentData.alerta_ar !== 'OK' ? 'alert' : 'ok',
-          title: 'Ar Condicionado',
-          message: currentData.alerta_ar,
-          timestamp: currentData.data_hora,
-          icon: AlertCircle,
-        },
-        {
-          id: 2,
-          type: currentData.alerta_luz !== 'OK' ? 'alert' : 'ok',
-          title: 'Iluminação',
-          message: currentData.alerta_luz,
-          timestamp: currentData.data_hora,
-          icon: AlertCircle,
-        },
-      ]
-    : []
+interface AlertStats {
+  total: number
+  errors: number
+  warnings: number
+  today: number
+}
+
+interface AlertsViewProps {
+  alerts: Alert[]
+  alertStats: AlertStats
+  clearActiveAlerts: () => void
+}
+
+export default function AlertsView({ alerts, alertStats, clearActiveAlerts }: AlertsViewProps) {
+  const getAlertTitle = (tipo: Alert['tipo']): string => {
+    const tipos = {
+      'ar-condicionado': 'Ar Condicionado',
+      'luzes': 'Iluminação'
+    }
+    return tipos[tipo]
+  }
+
+  const getAlertColor = (nivel: Alert['nivel']) => {
+    return nivel === 'error' 
+      ? { bg: 'bg-red-500/10 border-red-500/30', icon: 'bg-red-500/20', text: 'text-red-500', badge: 'bg-red-500/20 text-red-500' }
+      : { bg: 'bg-yellow-500/10 border-yellow-500/30', icon: 'bg-yellow-500/20', text: 'text-yellow-500', badge: 'bg-yellow-500/20 text-yellow-500' }
+  }
 
   return (
     <main className="flex-1 overflow-y-auto">
@@ -40,51 +47,77 @@ export default function AlertsView({ currentData }: AlertsViewProps) {
           <p className="text-muted-foreground">Gerenciamento de alertas e notificações</p>
         </div>
 
-        <div className="space-y-4">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`rounded-lg border p-6 ${
-                alert.type === 'alert'
-                  ? 'bg-red-500/10 border-red-500/30'
-                  : 'bg-green-500/10 border-green-500/30'
-              }`}
+        {/* Estatísticas dos Alertas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Total</h3>
+            <p className="text-2xl font-bold text-foreground">{alertStats.total}</p>
+          </div>
+          <div className="bg-card border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Críticos</h3>
+            <p className="text-2xl font-bold text-red-500">{alertStats.errors}</p>
+          </div>
+          <div className="bg-card border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Avisos</h3>
+            <p className="text-2xl font-bold text-yellow-500">{alertStats.warnings}</p>
+          </div>
+          <div className="bg-card border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Hoje</h3>
+            <p className="text-2xl font-bold text-foreground">{alertStats.today}</p>
+          </div>
+        </div>
+
+        {/* Ações */}
+        {alerts.length > 0 && (
+          <div className="mb-6">
+            <Button 
+              onClick={clearActiveAlerts}
+              variant="outline"
+              size="sm"
+              className="gap-2"
             >
-              <div className="flex items-start gap-4">
+              <Trash2 size={16} />
+              Limpar Todos os Alertas
+            </Button>
+          </div>
+        )}
+
+        {/* Lista de Alertas */}
+        <div className="space-y-4">
+          {alerts.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">Nenhum alerta ativo</h3>
+              <p className="text-muted-foreground">Todos os sistemas estão funcionando normalmente!</p>
+            </div>
+          ) : (
+            alerts.map((alert) => {
+              const colors = getAlertColor(alert.nivel)
+              return (
                 <div
-                  className={`p-3 rounded-lg ${
-                    alert.type === 'alert' ? 'bg-red-500/20' : 'bg-green-500/20'
-                  }`}
+                  key={alert.id}
+                  className={`rounded-lg border p-6 ${colors.bg}`}
                 >
-                  {alert.type === 'alert' ? (
-                    <AlertCircle
-                      size={24}
-                      className={alert.type === 'alert' ? 'text-red-500' : 'text-green-500'}
-                    />
-                  ) : (
-                    <CheckCircle size={24} className="text-green-500" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">{alert.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock size={14} />
-                    {new Date(alert.timestamp).toLocaleString('pt-BR')}
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-lg ${colors.icon}`}>
+                      <AlertCircle size={24} className={colors.text} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">{getAlertTitle(alert.tipo)}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">{alert.mensagem}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock size={14} />
+                        {new Date(alert.timestamp).toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
+                      {alert.nivel === 'error' ? 'Crítico' : 'Aviso'}
+                    </div>
                   </div>
                 </div>
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    alert.type === 'alert'
-                      ? 'bg-red-500/20 text-red-500'
-                      : 'bg-green-500/20 text-green-500'
-                  }`}
-                >
-                  {alert.type === 'alert' ? 'Ativo' : 'Resolvido'}
-                </div>
-              </div>
-            </div>
-          ))}
+              )
+            })
+          )}
         </div>
       </div>
     </main>

@@ -66,12 +66,8 @@ Este sistema monitora sensores ESP32 em tempo real e fornece alertas inteligente
   ],
   tags: [
     {
-      name: 'ESP32 Data',
+      name: 'Sensors',
       description: 'Endpoints para recebimento e recuperação de dados dos sensores'
-    },
-    {
-      name: 'Alerts',
-      description: 'Sistema de alertas e configurações'
     },
     {
       name: 'System',
@@ -320,83 +316,6 @@ Retorna os últimos 50 registros para construção de gráficos temporais.
                       }
                     },
                     count: { type: 'number', example: 50 }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    '/api/config-alertas': {
-      get: {
-        tags: ['Alerts'],
-        summary: 'Retorna configurações atuais dos alertas',
-        description: 'Busca os limites configurados para alertas de economia de energia'
-      },
-      post: {
-        tags: ['Alerts'], 
-        summary: 'Atualiza configurações dos alertas',
-        description: `
-Define novos limites para os alertas de economia de energia.
-
-### Como funciona:
-- Salva configurações em \`process.env\` (compartilhado entre instâncias serverless)
-- Aplicado imediatamente no endpoint \`/api/gravar\`
-- Permite customização dinâmica dos limites sem redeploy
-        `,
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['temperaturaLimite', 'luminosidadeLimite', 'tempoSemMovimento'],
-                properties: {
-                  temperaturaLimite: {
-                    type: 'number',
-                    minimum: 15,
-                    maximum: 30,
-                    example: 23,
-                    description: 'Temperatura limite para alerta de ar condicionado (°C)'
-                  },
-                  luminosidadeLimite: {
-                    type: 'number',
-                    minimum: 1000,
-                    maximum: 4000,
-                    example: 2500,
-                    description: 'Luminosidade limite para alerta de luzes (lux)'
-                  },
-                  tempoSemMovimento: {
-                    type: 'number',
-                    minimum: 30,
-                    maximum: 1800,
-                    example: 300,
-                    description: 'Tempo sem movimento para disparar alerta (segundos)'
-                  }
-                }
-              }
-            }
-          }
-        },
-        responses: {
-          200: {
-            description: 'Configurações salvas com sucesso',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Configurações salvas com sucesso' },
-                    config: {
-                      type: 'object',
-                      properties: {
-                        temperaturaLimite: { type: 'number', example: 23 },
-                        luminosidadeLimite: { type: 'number', example: 2500 },
-                        tempoSemMovimento: { type: 'number', example: 300 }
-                      }
-                    }
                   }
                 }
               }
