@@ -89,7 +89,7 @@ export function useAlertSystem() {
   }, [])
 
   // Adicionar novo alerta
-  const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp'>) => {
+  const addAlert = useCallback(async (alert: Omit<Alert, 'id' | 'timestamp'>) => {
     const newAlert: Alert = {
       ...alert,
       id: Math.random().toString(36).substr(2, 9),
@@ -98,36 +98,34 @@ export function useAlertSystem() {
     
     console.log('🔔 Novo alerta gerado:', newAlert)
     
-    setAlerts(prev => {
-      // Verificar se já existe um alerta ativo do mesmo tipo (não verificar por tempo)
-      const hasActiveAlert = prev.some(existingAlert => 
-        existingAlert.tipo === newAlert.tipo
-      )
+    // Verificar se já existe um alerta ativo do mesmo tipo
+    const hasActiveAlert = alerts.some(existingAlert => 
+      existingAlert.tipo === newAlert.tipo
+    )
+    
+    console.log('🔍 Já existe alerta ativo do mesmo tipo?', hasActiveAlert)
+    
+    // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
+    if (!hasActiveAlert) {
+      // Salvar no histórico ANTES de adicionar ao estado local
+      await saveToHistory(newAlert)
       
-      console.log('🔍 Já existe alerta ativo do mesmo tipo?', hasActiveAlert)
-      
-      // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
-      if (!hasActiveAlert) {
-        // Salvar no histórico
-        saveToHistory(newAlert)
-        
-        // Manter apenas os últimos 20 alertas
+      // Adicionar ao estado local
+      setAlerts(prev => {
         const updatedAlerts = [newAlert, ...prev].slice(0, 20)
-        
-        // Mostrar toast simples
-        toast({
-          title: getAlertTitle(newAlert.tipo, newAlert.nivel),
-          description: newAlert.mensagem,
-          variant: newAlert.nivel === 'error' ? 'destructive' : 'default'
-        })
-        
         return updatedAlerts
-      }
+      })
       
+      // Mostrar toast simples
+      toast({
+        title: getAlertTitle(newAlert.tipo, newAlert.nivel),
+        description: newAlert.mensagem,
+        variant: newAlert.nivel === 'error' ? 'destructive' : 'default'
+      })
+    } else {
       console.log('⚠️ Alerta não adicionado - já existe ativo do mesmo tipo')
-      return prev
-    })
-  }, [toast, saveToHistory])
+    }
+  }, [alerts, toast, saveToHistory])
 
   // Gerar título do alerta
   const getAlertTitle = (tipo: Alert['tipo'], nivel: Alert['nivel']): string => {
