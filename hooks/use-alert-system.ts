@@ -51,6 +51,38 @@ export function useAlertSystem() {
     lastMovementTimeRef.current = lastMovementTime
   }, [lastMovementTime])
 
+  // Salvar alerta no histórico do localStorage
+  const saveToHistory = useCallback((alert: Alert) => {
+    try {
+      console.log('🔄 Salvando alerta no histórico:', alert)
+      
+      const currentLab = localStorage.getItem('selected-lab')
+      const labName = currentLab ? JSON.parse(currentLab).nome || 'Laboratório Desconhecido' : 'Laboratório Desconhecido'
+      
+      const historyAlert: HistoryAlert = {
+        ...alert,
+        laboratorio: labName
+      }
+      
+      console.log('📝 Alerta do histórico:', historyAlert)
+      
+      const existingHistory = localStorage.getItem('alert-history')
+      const history: HistoryAlert[] = existingHistory ? JSON.parse(existingHistory) : []
+      
+      // Adicionar novo alerta ao início do array
+      history.unshift(historyAlert)
+      
+      // Manter apenas os últimos 1000 alertas no histórico
+      const trimmedHistory = history.slice(0, 1000)
+      
+      localStorage.setItem('alert-history', JSON.stringify(trimmedHistory))
+      
+      console.log('✅ Histórico salvo, total de alertas:', trimmedHistory.length)
+    } catch (error) {
+      console.error('❌ Erro ao salvar histórico de alertas:', error)
+    }
+  }, [])
+
   // Adicionar novo alerta
   const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp'>) => {
     const newAlert: Alert = {
@@ -59,11 +91,15 @@ export function useAlertSystem() {
       timestamp: Date.now()
     }
     
+    console.log('🔔 Novo alerta gerado:', newAlert)
+    
     setAlerts(prev => {
       // Verificar se já existe um alerta ativo do mesmo tipo (não verificar por tempo)
       const hasActiveAlert = prev.some(existingAlert => 
         existingAlert.tipo === newAlert.tipo
       )
+      
+      console.log('🔍 Já existe alerta ativo do mesmo tipo?', hasActiveAlert)
       
       // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
       if (!hasActiveAlert) {
@@ -83,35 +119,10 @@ export function useAlertSystem() {
         return updatedAlerts
       }
       
+      console.log('⚠️ Alerta não adicionado - já existe ativo do mesmo tipo')
       return prev
     })
-  }, [toast])
-
-  // Salvar alerta no histórico do localStorage
-  const saveToHistory = useCallback((alert: Alert) => {
-    try {
-      const currentLab = localStorage.getItem('selected-lab')
-      const labName = currentLab ? JSON.parse(currentLab).nome || 'Laboratório Desconhecido' : 'Laboratório Desconhecido'
-      
-      const historyAlert: HistoryAlert = {
-        ...alert,
-        laboratorio: labName
-      }
-      
-      const existingHistory = localStorage.getItem('alert-history')
-      const history: HistoryAlert[] = existingHistory ? JSON.parse(existingHistory) : []
-      
-      // Adicionar novo alerta ao início do array
-      history.unshift(historyAlert)
-      
-      // Manter apenas os últimos 1000 alertas no histórico
-      const trimmedHistory = history.slice(0, 1000)
-      
-      localStorage.setItem('alert-history', JSON.stringify(trimmedHistory))
-    } catch (error) {
-      console.error('Erro ao salvar histórico de alertas:', error)
-    }
-  }, [])
+  }, [toast, saveToHistory])
 
   // Gerar título do alerta
   const getAlertTitle = (tipo: Alert['tipo'], nivel: Alert['nivel']): string => {

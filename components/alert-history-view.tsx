@@ -44,15 +44,46 @@ export function AlertHistoryView() {
 
   // Carregar histórico do localStorage quando componente monta
   useEffect(() => {
+    console.log('🔄 AlertHistoryView: Carregando histórico do localStorage')
     const savedHistory = localStorage.getItem('alert-history')
+    console.log('📦 Dados do localStorage:', savedHistory)
+    
     if (savedHistory) {
       try {
         const history = JSON.parse(savedHistory)
+        console.log('✅ Histórico carregado:', history.length, 'alertas')
         setAlertHistory(history)
         setFilteredAlerts(history)
       } catch (error) {
-        console.error('Erro ao carregar histórico:', error)
+        console.error('❌ Erro ao carregar histórico:', error)
       }
+    } else {
+      console.log('📭 Nenhum histórico encontrado no localStorage')
+      
+      // Adicionar alguns alertas de exemplo para teste
+      const testAlerts: HistoryAlert[] = [
+        {
+          id: 'test1',
+          tipo: 'luzes',
+          nivel: 'warning',
+          mensagem: '💡 Luzes acesas há 25s sem ninguém! Luminosidade: 3000 lux',
+          timestamp: Date.now() - 5000,
+          laboratorio: 'E105 - Lab IoT'
+        },
+        {
+          id: 'test2',
+          tipo: 'ar-condicionado',
+          nivel: 'error',
+          mensagem: '❄️ Ar condicionado ligado há 30s sem ninguém! Temp: 21.5°C',
+          timestamp: Date.now() - 10000,
+          laboratorio: 'E105 - Lab IoT'
+        }
+      ]
+      
+      console.log('🧪 Adicionando alertas de teste:', testAlerts)
+      setAlertHistory(testAlerts)
+      setFilteredAlerts(testAlerts)
+      localStorage.setItem('alert-history', JSON.stringify(testAlerts))
     }
   }, [])
 
