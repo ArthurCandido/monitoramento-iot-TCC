@@ -39,14 +39,41 @@ interface HistoryAlert {
 const defaultConfig: AlertConfig = {
   temperaturaLimite: 23,
   luminosidadeLimite: 2500,
-  tempoSemMovimento: 20, // segundos (padrão 20 segundos)
+  tempoSemMovimento: 20,
 }
 
 export function useAlertSystem() {
-  const [config] = useState<AlertConfig>(defaultConfig)
+  const [config, setConfig] = useState<AlertConfig>(defaultConfig)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [lastMovementTime, setLastMovementTime] = useState<number>(() => Date.now())
   const { toast } = useToast()
+
+  // Carregar configurações da API
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/configuracoes')
+        const data = await response.json()
+        
+        if (data.success && data.data) {
+          setConfig({
+            temperaturaLimite: data.data.temperatura_limite,
+            luminosidadeLimite: data.data.luminosidade_limite,
+            tempoSemMovimento: data.data.tempo_sem_movimento
+          })
+          console.log('✅ Configurações carregadas da API:', data.data)
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar configurações:', error)
+      }
+    }
+
+    loadConfig()
+    
+    // Recarregar configurações a cada 30 segundos
+    const interval = setInterval(loadConfig, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Configurações fixas - apenas via código
   // Para alterar: modifique os valores em defaultConfig acima
