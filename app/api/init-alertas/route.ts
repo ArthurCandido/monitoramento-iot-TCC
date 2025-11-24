@@ -16,6 +16,9 @@ export async function GET() {
         nivel VARCHAR(20) NOT NULL,
         laboratorio VARCHAR(100) NOT NULL,
         timestamp TIMESTAMP DEFAULT NOW(),
+        timestamp_inicio TIMESTAMP,
+        timestamp_fim TIMESTAMP,
+        duracao_segundos INTEGER,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `

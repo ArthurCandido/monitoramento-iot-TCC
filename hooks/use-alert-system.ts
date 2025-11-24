@@ -23,10 +23,17 @@ interface Alert {
   mensagem: string
   nivel: 'warning' | 'error'
   timestamp: number
+  timestampInicio: number // Quando o alerta começou
 }
 
-interface HistoryAlert extends Alert {
+interface HistoryAlert {
+  tipo: 'ar-condicionado' | 'luzes'
+  mensagem: string
+  nivel: 'warning' | 'error'
   laboratorio: string
+  timestampInicio: number
+  timestampFim: number
+  duracaoSegundos: number
 }
 
 const defaultConfig: AlertConfig = {
@@ -51,33 +58,36 @@ export function useAlertSystem() {
     lastMovementTimeRef.current = lastMovementTime
   }, [lastMovementTime])
 
-  // Salvar alerta no histórico via API
-  const saveToHistory = useCallback(async (alert: Alert) => {
+  // Salvar alerta no histórico via API quando for desativado
+  const saveToHistory = useCallback(async (alert: Alert, timestampFim: number) => {
     try {
-      console.log('🔄 Salvando alerta no histórico via API:', alert)
+      const duracaoSegundos = Math.round((timestampFim - alert.timestampInicio) / 1000)
+      
+      console.log(`🔄 Salvando alerta no histórico via API (duração: ${duracaoSegundos}s):`, alert)
       
       let labName = 'Laboratório Desconhecido'
       
       try {
         const currentLab = localStorage.getItem('selected-lab')
         if (currentLab) {
-          // Tentar fazer parse do JSON
           const labData = JSON.parse(currentLab)
           labName = labData.nome || labData.id || currentLab
         }
       } catch (parseError) {
-        // Se falhar o parse, usar o valor direto
         const currentLab = localStorage.getItem('selected-lab')
         if (currentLab) {
           labName = currentLab
         }
       }
       
-      const historyAlert = {
+      const historyAlert: HistoryAlert = {
         tipo: alert.tipo,
-        mensagem: alert.mensagem,
+        mensagem: `${alert.mensagem} (Duração: ${duracaoSegundos}s)`,
         nivel: alert.nivel,
-        laboratorio: labName
+        laboratorio: labName,
+        timestampInicio: alert.timestampInicio,
+        timestampFim: timestampFim,
+        duracaoSegundos: duracaoSegundos
       }
       
       console.log('📝 Enviando para /api/alertas:', historyAlert)
@@ -103,18 +113,16 @@ export function useAlertSystem() {
   }, [])
 
   // Adicionar novo alerta
-  const addAlert = useCallback(async (alert: Omit<Alert, 'id' | 'timestamp'>) => {
+  const addAlert = useCallback((alert: Omit<Alert, 'id' | 'timestamp' | 'timestampInicio'>) => {
+    const now = Date.now()
     const newAlert: Alert = {
       ...alert,
       id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now()
+      timestamp: now,
+      timestampInicio: now
     }
     
     console.log('🔔 Novo alerta gerado:', newAlert)
-    
-    // SEMPRE salvar no histórico, independente de já ter ativo ou não
-    await saveToHistory(newAlert)
-    console.log('✅ Alerta salvo no histórico via API')
     
     // Verificar se já existe um alerta ativo do mesmo tipo
     const hasActiveAlert = alerts.some(existingAlert => 
@@ -125,7 +133,7 @@ export function useAlertSystem() {
     
     // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta aos ativos
     if (!hasActiveAlert) {
-      // Adicionar ao estado local
+      // Adicionar ao estado local (NÃO salva no histórico ainda)
       setAlerts(prev => {
         const updatedAlerts = [newAlert, ...prev].slice(0, 20)
         return updatedAlerts
@@ -137,10 +145,12 @@ export function useAlertSystem() {
         description: newAlert.mensagem,
         variant: newAlert.nivel === 'error' ? 'destructive' : 'default'
       })
+      
+      console.log('✅ Alerta ativado (será salvo no histórico quando for desativado)')
     } else {
-      console.log('⚠️ Alerta não adicionado aos ativos - já existe ativo do mesmo tipo (mas foi salvo no histórico)')
+      console.log('⚠️ Alerta não adicionado - já existe ativo do mesmo tipo')
     }
-  }, [alerts, toast, saveToHistory])
+  }, [alerts, toast])
 
   // Gerar título do alerta
   const getAlertTitle = (tipo: Alert['tipo'], nivel: Alert['nivel']): string => {
@@ -157,18 +167,31 @@ export function useAlertSystem() {
     return `${prefixes[nivel]} - ${tipos[tipo]}`
   }
 
-  // Limpar alertas ativos por tipo
-  const clearActiveAlerts = useCallback((tipoAlerta?: 'ar-condicionado' | 'luzes') => {
+  // Limpar alertas ativos por tipo e salvar no histórico
+  const clearActiveAlerts = useCallback(async (tipoAlerta?: 'ar-condicionado' | 'luzes') => {
+    const now = Date.now()
+    
+    // Pegar alertas que serão removidos para salvar no histórico
+    const alertsToSave = tipoAlerta 
+      ? alerts.filter(alert => alert.tipo === tipoAlerta)
+      : alerts
+    
+    // Salvar cada alerta no histórico com informação de duração
+    for (const alert of alertsToSave) {
+      await saveToHistory(alert, now)
+    }
+    
+    console.log(`📝 ${alertsToSave.length} alerta(s) salvo(s) no histórico`)
+    
+    // Agora sim limpar os alertas ativos
     setAlerts(prev => {
       if (tipoAlerta) {
-        // Limpar apenas alertas do tipo específico
         return prev.filter(alert => alert.tipo !== tipoAlerta)
       } else {
-        // Limpar todos os alertas ativos
         return []
       }
     })
-  }, [])
+  }, [alerts, saveToHistory])
 
   // Analisar dados dos sensores e gerar alertas
   const analyzeData = useCallback((data: SensorData) => {
@@ -195,7 +218,7 @@ export function useAlertSystem() {
         addAlert({
           tipo: 'ar-condicionado',
           nivel: 'error',
-          mensagem: `❄️ Ar condicionado ligado há ${Math.round(tempoSemMovimentoSegundos)}s sem ninguém! Temp: ${data.temperatura.toFixed(1)}°C`
+          mensagem: `❄️ Ar condicionado ligado sem ninguém! Temp: ${data.temperatura.toFixed(1)}°C`
         })
       }
       
@@ -204,7 +227,7 @@ export function useAlertSystem() {
         addAlert({
           tipo: 'luzes',
           nivel: 'warning',
-          mensagem: `💡 Luzes acesas há ${Math.round(tempoSemMovimentoSegundos)}s sem ninguém! Luminosidade: ${data.luminosidade} lux`
+          mensagem: `💡 Luzes acesas sem ninguém! Luminosidade: ${data.luminosidade} lux`
         })
       }
     }

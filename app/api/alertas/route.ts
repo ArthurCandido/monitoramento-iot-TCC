@@ -92,9 +92,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { tipo, mensagem, nivel, laboratorio } = body
+    const { tipo, mensagem, nivel, laboratorio, timestampInicio, timestampFim, duracaoSegundos } = body
 
-    console.log('📝 POST /api/alertas - Criando novo alerta:', { tipo, nivel, laboratorio })
+    console.log('📝 POST /api/alertas - Criando novo alerta:', { tipo, nivel, laboratorio, duracaoSegundos })
 
     // Validar dados
     if (!tipo || !mensagem || !nivel || !laboratorio) {
@@ -106,8 +106,26 @@ export async function POST(request: Request) {
 
     // Inserir no PostgreSQL
     const result = await sql`
-      INSERT INTO alertas (tipo, mensagem, nivel, laboratorio, timestamp)
-      VALUES (${tipo}, ${mensagem}, ${nivel}, ${laboratorio}, NOW())
+      INSERT INTO alertas (
+        tipo, 
+        mensagem, 
+        nivel, 
+        laboratorio, 
+        timestamp, 
+        timestamp_inicio, 
+        timestamp_fim, 
+        duracao_segundos
+      )
+      VALUES (
+        ${tipo}, 
+        ${mensagem}, 
+        ${nivel}, 
+        ${laboratorio}, 
+        NOW(),
+        ${timestampInicio ? new Date(timestampInicio).toISOString() : null},
+        ${timestampFim ? new Date(timestampFim).toISOString() : null},
+        ${duracaoSegundos || null}
+      )
       RETURNING *
     `
 
@@ -123,7 +141,8 @@ export async function POST(request: Request) {
         mensagem: newAlert.mensagem,
         nivel: newAlert.nivel,
         timestamp: new Date(newAlert.timestamp).getTime(),
-        laboratorio: newAlert.laboratorio
+        laboratorio: newAlert.laboratorio,
+        duracaoSegundos: newAlert.duracao_segundos
       }
     })
   } catch (error) {
