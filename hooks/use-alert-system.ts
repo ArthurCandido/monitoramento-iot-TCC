@@ -56,8 +56,22 @@ export function useAlertSystem() {
     try {
       console.log('🔄 Salvando alerta no histórico via API:', alert)
       
-      const currentLab = localStorage.getItem('selected-lab')
-      const labName = currentLab ? JSON.parse(currentLab).nome || 'Laboratório Desconhecido' : 'Laboratório Desconhecido'
+      let labName = 'Laboratório Desconhecido'
+      
+      try {
+        const currentLab = localStorage.getItem('selected-lab')
+        if (currentLab) {
+          // Tentar fazer parse do JSON
+          const labData = JSON.parse(currentLab)
+          labName = labData.nome || labData.id || currentLab
+        }
+      } catch (parseError) {
+        // Se falhar o parse, usar o valor direto
+        const currentLab = localStorage.getItem('selected-lab')
+        if (currentLab) {
+          labName = currentLab
+        }
+      }
       
       const historyAlert = {
         tipo: alert.tipo,
