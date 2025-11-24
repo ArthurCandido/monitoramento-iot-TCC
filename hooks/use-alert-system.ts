@@ -25,6 +25,10 @@ interface Alert {
   timestamp: number
 }
 
+interface HistoryAlert extends Alert {
+  laboratorio: string
+}
+
 const defaultConfig: AlertConfig = {
   temperaturaLimite: 23,
   luminosidadeLimite: 2500,
@@ -63,6 +67,9 @@ export function useAlertSystem() {
       
       // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
       if (!hasActiveAlert) {
+        // Salvar no histórico
+        saveToHistory(newAlert)
+        
         // Manter apenas os últimos 20 alertas
         const updatedAlerts = [newAlert, ...prev].slice(0, 20)
         
@@ -79,6 +86,32 @@ export function useAlertSystem() {
       return prev
     })
   }, [toast])
+
+  // Salvar alerta no histórico do localStorage
+  const saveToHistory = useCallback((alert: Alert) => {
+    try {
+      const currentLab = localStorage.getItem('selected-lab')
+      const labName = currentLab ? JSON.parse(currentLab).nome || 'Laboratório Desconhecido' : 'Laboratório Desconhecido'
+      
+      const historyAlert: HistoryAlert = {
+        ...alert,
+        laboratorio: labName
+      }
+      
+      const existingHistory = localStorage.getItem('alert-history')
+      const history: HistoryAlert[] = existingHistory ? JSON.parse(existingHistory) : []
+      
+      // Adicionar novo alerta ao início do array
+      history.unshift(historyAlert)
+      
+      // Manter apenas os últimos 1000 alertas no histórico
+      const trimmedHistory = history.slice(0, 1000)
+      
+      localStorage.setItem('alert-history', JSON.stringify(trimmedHistory))
+    } catch (error) {
+      console.error('Erro ao salvar histórico de alertas:', error)
+    }
+  }, [])
 
   // Gerar título do alerta
   const getAlertTitle = (tipo: Alert['tipo'], nivel: Alert['nivel']): string => {

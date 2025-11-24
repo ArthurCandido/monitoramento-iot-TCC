@@ -10,6 +10,7 @@ import StatusView from '@/components/status-view'
 import { ConfigView } from '@/components/config-view'
 import { LabSelector } from '@/components/lab-selector'
 import { LabsView } from '@/components/labs-view'
+import { AlertHistoryView } from '@/components/alert-history-view'
 import { NoDataView } from '@/components/no-data-view'
 import ApiDocsPage from '@/app/docs/page'
 import { useAlertSystem } from '@/hooks/use-alert-system'
@@ -137,6 +138,8 @@ function DashboardContent() {
         return <HistoryView historyData={historyData} />
       case 'alerts':
         return <AlertsView alerts={alerts} alertStats={alertStats} clearActiveAlerts={clearActiveAlerts} />
+      case 'alert-history':
+        return <AlertHistoryView />
       case 'status':
         return <StatusView connectionStatus={connectionStatus} />
       case 'config':
