@@ -1,4 +1,4 @@
-# 🏠 Sistema de Monitoramento IoT Multi-Laboratório - TCC
+# 🏠 SISTEMA DE ALERTA IOT PARA AMBIENTES ACADÊMICOS - TCC
 
 Sistema completo de monitoramento em tempo real para ambientes acadêmicos utilizando ESP32 e sensores IoT. 
 Apresenta dashboard web responsivo com sistema de seleção de laboratórios, visualizações ao vivo, análise histórica, 
@@ -6,7 +6,7 @@ alertas automáticos inteligentes e documentação API integrada para otimizaç�
 
 ## 🎯 Visão Geral
 
-Este projeto implementa uma solução IoT abrangente para monitoramento de economia de energia em laboratórios acadêmicos, 
+Este projeto implementa uma solução IoT abrangente para monitoramento em laboratórios acadêmicos, 
 detectando desperdícios como ar condicionado e luzes funcionando sem presença humana. O sistema suporta múltiplos 
 laboratórios (E100-E107) com interface intuitiva para seleção e monitoramento.
 
@@ -270,11 +270,10 @@ Acesse `http://localhost:3000/docs` para interface Swagger completa com:
 ## 🎓 Contexto Acadêmico
 
 ### Objetivo do TCC
-Desenvolver sistema IoT para **otimização energética** em ambientes acadêmicos, detectando:
+Desenvolver sistema IoT para **monitoramento** em ambientes acadêmicos, detectando:
 - ❄️ **Ar condicionado** funcionando sem presença
 - 💡 **Iluminação** acesa desnecessariamente
 - 📊 **Padrões de uso** para tomada de decisões
-- 🔋 **Economia de energia** através de alertas automáticos
 
 ### Laboratórios Monitorados
 - **E100-E107**: Laboratórios Bloco E (UTFPR-CM)
@@ -336,27 +335,11 @@ npm start         # Servidor produção
 - [x] Sistema persistência laboratórios
 - [x] Gráficos históricos interativos
 
-### 🚧 Em Desenvolvimento
-- [ ] Notificações push/email
-- [ ] Relatórios automáticos PDF
-- [ ] API analytics avançados
-- [ ] Mobile app nativo
-
 ### 🔮 Futuro
 - [ ] Machine Learning para previsões
 - [ ] Integração sistemas UTFPR
 - [ ] Expansão outros blocos
 - [ ] Dashboard administrativo
-
-## 🤝 Contribuições
-
-Este é um projeto acadêmico (TCC), mas sugestões são bem-vindas:
-
-1. **Fork** o projeto
-2. **Crie** branch para feature (`git checkout -b feature/nova-funcionalidade`)
-3. **Commit** suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. **Push** para branch (`git push origin feature/nova-funcionalidade`)
-5. **Abra** Pull Request
 
 ## 📄 Licença
 
@@ -368,14 +351,14 @@ Este projeto está sob a licença **MIT**. Veja [LICENSE](LICENSE) para detalhes
 🎓 Bacharelando em Ciência da Computação - UTFPR-CM  
 📧 Email: [arthurarcelo24@gmail.com]  
 🐙 GitHub: [@ArthurCandido](https://github.com/ArthurCandido)  
-💼 LinkedIn: [Arthur Candido](https://linkedin.com/in/arthur-candido)
+💼 LinkedIn: [Arthur Candido](https://linkedin.com/in/arthurcandidoo)
 
 ---
 
 <div align="center">
 
-### 🏆 **TCC 2024/2025 - UTFPR Campo Mourão**
-*Sistema IoT para Otimização Energética em Ambientes Acadêmicos*
+### 🏆 **TCC 2025 - UTFPR Campo Mourão**
+*SISTEMA DE ALERTA IOT PARA AMBIENTES ACADÊMICOS*
 
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
@@ -383,7 +366,5 @@ Este projeto está sob a licença **MIT**. Veja [LICENSE](LICENSE) para detalhes
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-blue)
 ![ESP32](https://img.shields.io/badge/ESP32-IoT-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
-
-**⭐ Se este projeto te ajudou, deixe uma estrela!**
 
 </div>
