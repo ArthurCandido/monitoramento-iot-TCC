@@ -51,35 +51,40 @@ export function useAlertSystem() {
     lastMovementTimeRef.current = lastMovementTime
   }, [lastMovementTime])
 
-  // Salvar alerta no histórico do localStorage
-  const saveToHistory = useCallback((alert: Alert) => {
+  // Salvar alerta no histórico via API
+  const saveToHistory = useCallback(async (alert: Alert) => {
     try {
-      console.log('🔄 Salvando alerta no histórico:', alert)
+      console.log('🔄 Salvando alerta no histórico via API:', alert)
       
       const currentLab = localStorage.getItem('selected-lab')
       const labName = currentLab ? JSON.parse(currentLab).nome || 'Laboratório Desconhecido' : 'Laboratório Desconhecido'
       
-      const historyAlert: HistoryAlert = {
-        ...alert,
+      const historyAlert = {
+        tipo: alert.tipo,
+        mensagem: alert.mensagem,
+        nivel: alert.nivel,
         laboratorio: labName
       }
       
-      console.log('📝 Alerta do histórico:', historyAlert)
+      console.log('📝 Enviando para /api/alertas:', historyAlert)
       
-      const existingHistory = localStorage.getItem('alert-history')
-      const history: HistoryAlert[] = existingHistory ? JSON.parse(existingHistory) : []
+      const response = await fetch('/api/alertas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(historyAlert)
+      })
       
-      // Adicionar novo alerta ao início do array
-      history.unshift(historyAlert)
+      const data = await response.json()
       
-      // Manter apenas os últimos 1000 alertas no histórico
-      const trimmedHistory = history.slice(0, 1000)
-      
-      localStorage.setItem('alert-history', JSON.stringify(trimmedHistory))
-      
-      console.log('✅ Histórico salvo, total de alertas:', trimmedHistory.length)
+      if (data.success) {
+        console.log('✅ Alerta salvo no PostgreSQL:', data.data)
+      } else {
+        console.error('❌ Erro ao salvar alerta:', data.error)
+      }
     } catch (error) {
-      console.error('❌ Erro ao salvar histórico de alertas:', error)
+      console.error('❌ Erro ao salvar histórico de alertas via API:', error)
     }
   }, [])
 

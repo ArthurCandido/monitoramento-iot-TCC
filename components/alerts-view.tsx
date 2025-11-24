@@ -44,37 +44,31 @@ export default function AlertsView({ alerts, alertStats, clearActiveAlerts }: Al
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  // Carregar histórico do localStorage
+  // Carregar histórico da API
   useEffect(() => {
-    console.log('🔄 AlertsView: Carregando histórico do localStorage')
-    const savedHistory = localStorage.getItem('alert-history')
-    console.log('📦 Dados do localStorage:', savedHistory)
-    
-    if (savedHistory) {
+    const fetchHistory = async () => {
+      console.log('🔄 AlertsView: Carregando histórico da API')
+      
       try {
-        const history = JSON.parse(savedHistory)
-        console.log('✅ Histórico carregado:', history.length, 'alertas')
-        setAlertHistory(history)
-        setFilteredHistory(history)
+        const response = await fetch('/api/alertas?limit=1000')
+        const data = await response.json()
+        
+        if (data.success) {
+          console.log('✅ Histórico carregado da API:', data.data.length, 'alertas')
+          setAlertHistory(data.data)
+          setFilteredHistory(data.data)
+        } else {
+          console.error('❌ Erro ao carregar histórico:', data.error)
+        }
       } catch (error) {
-        console.error('❌ Erro ao carregar histórico:', error)
+        console.error('❌ Erro ao buscar histórico da API:', error)
       }
-    } else {
-      console.log('📭 Nenhum histórico encontrado no localStorage')
     }
 
+    fetchHistory()
+
     // Recarregar a cada 5 segundos para capturar novos alertas
-    const interval = setInterval(() => {
-      const updatedHistory = localStorage.getItem('alert-history')
-      if (updatedHistory) {
-        try {
-          const history = JSON.parse(updatedHistory)
-          setAlertHistory(history)
-        } catch (error) {
-          console.error('Erro ao recarregar histórico:', error)
-        }
-      }
-    }, 5000)
+    const interval = setInterval(fetchHistory, 5000)
 
     return () => clearInterval(interval)
   }, [])
@@ -149,17 +143,40 @@ export default function AlertsView({ alerts, alertStats, clearActiveAlerts }: Al
     }
   }
 
-  const deleteHistoryAlert = (alertId: string) => {
-    const updatedHistory = alertHistory.filter(alert => alert.id !== alertId)
-    setAlertHistory(updatedHistory)
-    localStorage.setItem('alert-history', JSON.stringify(updatedHistory))
+  const deleteHistoryAlert = async (alertId: string) => {
+    try {
+      const response = await fetch(`/api/alertas?id=${alertId}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // Atualizar estado local
+        const updatedHistory = alertHistory.filter(alert => alert.id !== alertId)
+        setAlertHistory(updatedHistory)
+        console.log('✅ Alerta deletado via API')
+      } else {
+        console.error('❌ Erro ao deletar alerta:', data.error)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao deletar alerta via API:', error)
+    }
   }
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
     if (confirm('Tem certeza que deseja limpar todo o histórico de alertas?')) {
-      setAlertHistory([])
-      setFilteredHistory([])
-      localStorage.removeItem('alert-history')
+      try {
+        // Deletar todos os alertas um por um (pode ser otimizado com uma rota DELETE específica)
+        for (const alert of alertHistory) {
+          await fetch(`/api/alertas?id=${alert.id}`, { method: 'DELETE' })
+        }
+        setAlertHistory([])
+        setFilteredHistory([])
+        console.log('✅ Todo o histórico foi limpo')
+      } catch (error) {
+        console.error('❌ Erro ao limpar histórico:', error)
+      }
     }
   }
 
