@@ -138,8 +138,6 @@ function DashboardContent() {
         return <HistoryView historyData={historyData} />
       case 'alerts':
         return <AlertsView alerts={alerts} alertStats={alertStats} clearActiveAlerts={clearActiveAlerts} />
-      case 'alert-history':
-        return <AlertHistoryView />
       case 'status':
         return <StatusView connectionStatus={connectionStatus} />
       case 'config':

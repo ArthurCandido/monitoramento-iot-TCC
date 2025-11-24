@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText, Building, MapPin, Archive } from 'lucide-react'
+import { LayoutDashboard, Gauge, History, AlertCircle, Activity, Menu, X, ChevronRight, Settings, FileText, Building, MapPin } from 'lucide-react'
 import { useLab } from '@/contexts/lab-context'
 import { Badge } from '@/components/ui/badge'
 
@@ -54,13 +54,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       id: 'alerts',
       name: 'Alertas',
       icon: AlertCircle,
-      description: 'Gerenciamento de alertas',
-    },
-    {
-      id: 'alert-history',
-      name: 'Histórico',
-      icon: Archive,
-      description: 'Histórico de alertas',
+      description: 'Gerenciamento e histórico de alertas',
     },
     {
       id: 'status',
