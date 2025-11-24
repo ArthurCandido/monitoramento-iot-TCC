@@ -84,23 +84,23 @@ export async function POST(request: Request) {
     }
 
     // Validar ranges
-    if (temperatura_limite < 15 || temperatura_limite > 30) {
+    if (temperatura_limite < 15 || temperatura_limite > 35) {
       return NextResponse.json(
-        { success: false, error: 'Temperatura deve estar entre 15°C e 30°C' },
+        { success: false, error: 'Temperatura deve estar entre 15°C e 35°C' },
         { status: 400 }
       )
     }
 
-    if (luminosidade_limite < 500 || luminosidade_limite > 5000) {
+    if (luminosidade_limite < 0 || luminosidade_limite > 10000) {
       return NextResponse.json(
-        { success: false, error: 'Luminosidade deve estar entre 500 e 5000 lux' },
+        { success: false, error: 'Luminosidade deve estar entre 0 e 10000 lux' },
         { status: 400 }
       )
     }
 
-    if (tempo_sem_movimento < 10 || tempo_sem_movimento > 300) {
+    if (tempo_sem_movimento < 1 || tempo_sem_movimento > 600) {
       return NextResponse.json(
-        { success: false, error: 'Tempo sem movimento deve estar entre 10 e 300 segundos' },
+        { success: false, error: 'Tempo sem movimento deve estar entre 1 e 600 segundos' },
         { status: 400 }
       )
     }

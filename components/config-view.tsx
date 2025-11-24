@@ -125,14 +125,14 @@ export function ConfigView() {
                 <Input
                   type="number"
                   min="15"
-                  max="30"
+                  max="35"
                   step="0.5"
                   value={tempConfig.temperaturaLimite}
                   onChange={(e) => setTempConfig({...tempConfig, temperaturaLimite: parseFloat(e.target.value)})}
                   className="w-full"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Alerta quando temperatura for menor que este valor (15°C - 30°C)
+                  Alerta quando temperatura for menor que este valor (15°C - 35°C)
                 </p>
               </div>
 
@@ -144,15 +144,15 @@ export function ConfigView() {
                 </div>
                 <Input
                   type="number"
-                  min="500"
-                  max="5000"
+                  min="0"
+                  max="10000"
                   step="100"
                   value={tempConfig.luminosidadeLimite}
                   onChange={(e) => setTempConfig({...tempConfig, luminosidadeLimite: parseInt(e.target.value)})}
                   className="w-full"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Alerta quando luminosidade for maior que este valor (500 - 5000 lux)
+                  Alerta quando luminosidade for maior que este valor (0 - 10000 lux)
                 </p>
               </div>
 
@@ -164,15 +164,15 @@ export function ConfigView() {
                 </div>
                 <Input
                   type="number"
-                  min="10"
-                  max="300"
-                  step="5"
+                  min="1"
+                  max="600"
+                  step="1"
                   value={tempConfig.tempoSemMovimento}
                   onChange={(e) => setTempConfig({...tempConfig, tempoSemMovimento: parseInt(e.target.value)})}
                   className="w-full"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Tempo necessário sem movimento antes de gerar alertas (10 - 300 segundos)
+                  Tempo necessário sem movimento antes de gerar alertas (1 - 600 segundos)
                 </p>
               </div>
 
