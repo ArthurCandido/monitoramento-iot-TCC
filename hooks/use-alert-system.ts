@@ -98,6 +98,10 @@ export function useAlertSystem() {
     
     console.log('🔔 Novo alerta gerado:', newAlert)
     
+    // SEMPRE salvar no histórico, independente de já ter ativo ou não
+    await saveToHistory(newAlert)
+    console.log('✅ Alerta salvo no histórico via API')
+    
     // Verificar se já existe um alerta ativo do mesmo tipo
     const hasActiveAlert = alerts.some(existingAlert => 
       existingAlert.tipo === newAlert.tipo
@@ -105,11 +109,8 @@ export function useAlertSystem() {
     
     console.log('🔍 Já existe alerta ativo do mesmo tipo?', hasActiveAlert)
     
-    // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta
+    // Se não há alerta ativo do mesmo tipo, adicionar o novo alerta aos ativos
     if (!hasActiveAlert) {
-      // Salvar no histórico ANTES de adicionar ao estado local
-      await saveToHistory(newAlert)
-      
       // Adicionar ao estado local
       setAlerts(prev => {
         const updatedAlerts = [newAlert, ...prev].slice(0, 20)
@@ -123,7 +124,7 @@ export function useAlertSystem() {
         variant: newAlert.nivel === 'error' ? 'destructive' : 'default'
       })
     } else {
-      console.log('⚠️ Alerta não adicionado - já existe ativo do mesmo tipo')
+      console.log('⚠️ Alerta não adicionado aos ativos - já existe ativo do mesmo tipo (mas foi salvo no histórico)')
     }
   }, [alerts, toast, saveToHistory])
 
