@@ -23,7 +23,7 @@ export function LabSelector() {
             Sistema de Monitoramento IoT
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-            Laboratórios do Bloco E - Faculdade
+            Laboratórios do Bloco E - UTFPR Campus Campo Mourão
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Selecione um laboratório para monitorar

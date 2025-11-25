@@ -238,14 +238,7 @@ export function ConfigView() {
                     <strong>⚠️ Alterações pendentes:</strong> Clique em "Salvar Alterações" para aplicar as novas configurações.
                   </p>
                 </div>
-              )}
-
-              {/* Nota sobre persistência */}
-              <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  <strong>💾 Persistente:</strong> As configurações são salvas no banco de dados PostgreSQL e aplicadas a todos os dispositivos.
-                </p>
-              </div>
+              )}         
             </CardContent>
           </Card>
         </div>

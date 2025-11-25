@@ -18,14 +18,14 @@ interface LabContextType {
 }
 
 const LABORATORIES: Laboratory[] = [
-  { id: 'E100', nome: 'E100', ativo: false, descricao: 'Laboratório de Informática 1' },
-  { id: 'E101', nome: 'E101', ativo: false, descricao: 'Laboratório de Informática 2' },
-  { id: 'E102', nome: 'E102', ativo: false, descricao: 'Laboratório de Redes' },
-  { id: 'E103', nome: 'E103', ativo: false, descricao: 'Laboratório de Hardware' },
-  { id: 'E104', nome: 'E104', ativo: false, descricao: 'Laboratório de Programação' },
-  { id: 'E105', nome: 'E105', ativo: true, descricao: 'Laboratório IoT (Protótipo Ativo)' },
-  { id: 'E106', nome: 'E106', ativo: false, descricao: 'Laboratório de Sistemas' },
-  { id: 'E107', nome: 'E107', ativo: false, descricao: 'Laboratório de Multimídia' }
+  { id: 'E100', nome: 'E100', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E101', nome: 'E101', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E102', nome: 'E102', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E103', nome: 'E103', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E104', nome: 'E104', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E105', nome: 'E105', ativo: true, descricao: 'Laboratório de Informática' },
+  { id: 'E106', nome: 'E106', ativo: false, descricao: 'Laboratório de Informática' },
+  { id: 'E107', nome: 'E107', ativo: false, descricao: 'Laboratório de Informática' }
 ]
 
 const LabContext = createContext<LabContextType | undefined>(undefined)

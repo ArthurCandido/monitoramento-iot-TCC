@@ -27,11 +27,11 @@ const swaggerSpec = {
 Este sistema monitora sensores ESP32 em tempo real e fornece alertas inteligentes para economia de energia.
 
 ## Características principais:
-- 🌡️ Monitoramento de temperatura, umidade, luminosidade e movimento
-- 🚨 Alertas automáticos para economia de energia  
-- 📊 Armazenamento histórico em PostgreSQL
-- ⚡ Cache busting para dados em tempo real
-- 🔧 Configurações dinâmicas de alertas
+- Monitoramento de temperatura, umidade, luminosidade e movimento
+- Alertas automáticos para economia de energia  
+- Armazenamento histórico em PostgreSQL
+- Cache busting para dados em tempo real
+- Configurações dinâmicas de alertas
 
 ## Fluxo de dados:
 1. **ESP32** → Envia dados a cada 5 segundos para \`/api/gravar\`
@@ -91,10 +91,10 @@ Este sistema monitora sensores ESP32 em tempo real e fornece alertas inteligente
 Endpoint principal para recebimento de dados dos sensores IoT.
 
 ### Funcionalidades:
-- ✅ Validação de dados de entrada
-- 🗃️ Armazenamento em PostgreSQL  
-- 🚨 Processamento de alertas em tempo real
-- 🧹 Limpeza automática de dados antigos
+- Validação de dados de entrada
+- Armazenamento em PostgreSQL  
+- Processamento de alertas em tempo real
+- Limpeza automática de dados antigos
 
 ### Lógica de alertas:
 - **Ar condicionado**: Se temperatura < limite configurado + sem movimento por X segundos
@@ -332,10 +332,10 @@ Retorna os últimos 50 registros para construção de gráficos temporais.
 Verifica saúde de todos os componentes do sistema IoT.
 
 ### Verificações:
-- 🗃️ **PostgreSQL**: Conectividade e contagem de registros
-- 📡 **ESP32**: Última transmissão e tempo desde último dado
-- ⚡ **API**: Uptime e responsividade
-- 🕐 **Tempo real**: Detecta se dados estão frescos (≤30s) ou antigos
+- **PostgreSQL**: Conectividade e contagem de registros
+- **ESP32**: Última transmissão e tempo desde último dado
+- **API**: Uptime e responsividade
+- **Tempo real**: Detecta se dados estão frescos (≤30s) ou antigos
 
 ### Estados ESP32:
 - **connected**: Dentro do intervalo esperado (≤ 7s = transmissão a cada 5s + 2s tolerância)
