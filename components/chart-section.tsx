@@ -1,8 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { BarChart, Bar } from 'recharts'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Clock } from 'lucide-react'
 
 interface HistoryData {
   temperatura: number
@@ -16,8 +18,23 @@ interface ChartSectionProps {
 }
 
 export default function ChartSection({ historyData }: ChartSectionProps) {
+  const [timeRange, setTimeRange] = useState('10') // em minutos
+  
   // Validação de segurança - garantir que historyData é um array
   const safeHistoryData = Array.isArray(historyData) ? historyData : []
+  
+  // Filtrar dados baseado no intervalo selecionado
+  const filteredData = useMemo(() => {
+    if (safeHistoryData.length === 0) return []
+    
+    const now = Date.now()
+    const rangeMs = parseInt(timeRange) * 60 * 1000 // converter minutos para ms
+    
+    return safeHistoryData.filter(d => {
+      const dataTime = new Date(d.timestamp || d.data_hora).getTime()
+      return (now - dataTime) <= rangeMs
+    })
+  }, [safeHistoryData, timeRange])
   
   if (safeHistoryData.length === 0) {
     return (
@@ -28,20 +45,50 @@ export default function ChartSection({ historyData }: ChartSectionProps) {
     )
   }
   
-  const chartData = safeHistoryData.map((d) => ({
+  const chartData = filteredData.map((d) => ({
     time: new Date(d.timestamp || d.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     temperatura: d.temperatura,
     luminosidade: Math.round(d.luminosidade / 100),
   }))
 
   // Calculate statistics
-  const temps = safeHistoryData.map((d) => d.temperatura)
+  const temps = filteredData.map((d) => d.temperatura)
   const avgTemp = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '0'
   const maxTemp = temps.length > 0 ? Math.max(...temps).toFixed(1) : '0'
   const minTemp = temps.length > 0 ? Math.min(...temps).toFixed(1) : '0'
 
   return (
     <div className="space-y-6 mb-8">
+      {/* Time Range Selector */}
+      <div className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Intervalo de Tempo</h3>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">Últimos 5 minutos</SelectItem>
+              <SelectItem value="10">Últimos 10 minutos</SelectItem>
+              <SelectItem value="15">Últimos 15 minutos</SelectItem>
+              <SelectItem value="30">Últimos 30 minutos</SelectItem>
+              <SelectItem value="60">Última 1 hora</SelectItem>
+              <SelectItem value="120">Últimas 2 horas</SelectItem>
+              <SelectItem value="180">Últimas 3 horas</SelectItem>
+              <SelectItem value="360">Últimas 6 horas</SelectItem>
+              <SelectItem value="720">Últimas 12 horas</SelectItem>
+              <SelectItem value="1440">Últimas 24 horas</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="text-sm text-muted-foreground">
+            {filteredData.length} registro(s) no período
+          </div>
+        </div>
+      </div>
+      
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-card border border-border rounded-lg p-4">
