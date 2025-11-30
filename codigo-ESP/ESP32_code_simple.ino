@@ -9,11 +9,11 @@
 // ============================================================
 // CONFIGURAÇÕES DE REDE
 // ============================================================
-const char* ssid = "Nerdhouse";  // Configure sua rede WiFi
-const char* password = "13022412";
+const char* ssid = "Coloque o nome do seu WIFI aqui";  // Configure sua rede WiFi
+const char* password = "Senha do seu WiFi aqui";
 
 // URL do servidor Vercel
-String serverName = "https://monitoramento-iot-tcc.vercel.app/api/gravar";
+String serverName = "URL do seu servidor";
 
 // ============================================================
 // CONFIGURAÇÕES DE PINOS
