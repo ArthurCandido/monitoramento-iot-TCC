@@ -28,12 +28,37 @@ export default function ChartSection({ historyData }: ChartSectionProps) {
     if (safeHistoryData.length === 0) return []
     
     const now = Date.now()
-    const rangeMs = parseInt(timeRange) * 60 * 1000 // converter minutos para ms
+    const rangeMinutes = parseInt(timeRange)
+    const rangeMs = rangeMinutes * 60 * 1000 // converter minutos para ms
+    const cutoffTime = now - rangeMs
     
-    return safeHistoryData.filter(d => {
-      const dataTime = new Date(d.timestamp || d.data_hora).getTime()
-      return (now - dataTime) <= rangeMs
+    console.log('🔍 Filtro de tempo:', {
+      totalRegistros: safeHistoryData.length,
+      intervaloMinutos: rangeMinutes,
+      agora: new Date(now).toLocaleString('pt-BR'),
+      corte: new Date(cutoffTime).toLocaleString('pt-BR')
     })
+    
+    const filtered = safeHistoryData.filter(d => {
+      const timestamp = d.timestamp || d.data_hora
+      if (!timestamp) return false
+      
+      const dataTime = new Date(timestamp).getTime()
+      const include = dataTime >= cutoffTime
+      
+      return include
+    })
+    
+    console.log(`📊 Resultado do filtro: ${filtered.length} de ${safeHistoryData.length} registros`)
+    
+    if (filtered.length > 0) {
+      console.log('📅 Range dos dados filtrados:', {
+        primeiro: new Date(filtered[filtered.length - 1].timestamp || filtered[filtered.length - 1].data_hora).toLocaleString('pt-BR'),
+        ultimo: new Date(filtered[0].timestamp || filtered[0].data_hora).toLocaleString('pt-BR')
+      })
+    }
+    
+    return filtered
   }, [safeHistoryData, timeRange])
   
   if (safeHistoryData.length === 0) {

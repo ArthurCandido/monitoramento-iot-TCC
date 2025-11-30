@@ -4,8 +4,8 @@ import { dbStore } from '@/lib/db-store'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '100')
-    const hours = parseInt(searchParams.get('hours') || '24')
+    const limit = parseInt(searchParams.get('limit') || '500')
+    const hours = parseInt(searchParams.get('hours') || '48')
     
     console.log(`📊 Buscando histórico PostgreSQL: ${limit} registros, últimas ${hours}h`)
     
